@@ -1,0 +1,11 @@
+// Exact reported request, isolated from the teacher's documents and account.
+process.env.DATABASE_DRIVER='pglite';process.env.PGLITE_PATH='memory://';process.env.DOC_WORKER_DISABLED='1';process.env.NODE_ENV='test';process.env.STORAGE_DRIVER='local';
+const {randomUUID}=require('node:crypto');const {readFile}=require('node:fs/promises');
+async function main(){
+ const {createApp}=require('../dist/main');const {Database}=require('../dist/database/database');const {AIService}=require('../dist/ai/ai.module');let app;
+ try{app=await createApp();const db=app.get(Database);await db.executeSchema(await readFile('src/database/schema.sql','utf8'));const id=randomUUID();await db.query('INSERT INTO users(id,email,password_hash,name) VALUES($1,$2,$3,$4)',[id,'synthetic-react@example.test','unused','Diagnóstico sintético']);const {AIProvider}=require('../dist/ai/provider');let call=0;for(const provider of app.get(AIProvider,{each:true})){const original=provider.generate.bind(provider);provider.generate=async(...args)=>{const result=await original(...args);if(args[2]?.properties?.blocks){const {writeFile}=require('node:fs/promises');await writeFile('../artifacts/guide-diagnostic-'+(++call)+'.json',result.text);}return result;};}const started=Date.now();
+  const result=await app.get(AIService).generate(id,{kind:'guide',topic:'Crea una guía práctica de react con visual, incluyendo código y, ejemplos.',sourceIds:[],mode:'general',parameters:{guideType:'Práctica paso a paso',visualMode:'generated',career:'ING. SISTEMAS',course:'Desarrollo de Software',duration:'90',pages:'10'}});
+  const {renderPublishedGuidePdf,renderPublishedGuideDocx}=require('../dist/exports/guide-publication');const {writeFile}=require('node:fs/promises');await writeFile('../artifacts/react-guide-10.pdf',await renderPublishedGuidePdf(result.data,new Map(),[]));await writeFile('../artifacts/react-guide-10.docx',await renderPublishedGuideDocx(result.data,new Map(),[]));await writeFile('../artifacts/react-guide-10.json',JSON.stringify(result.data));console.log(JSON.stringify({ok:true,seconds:Math.round((Date.now()-started)/1000),blocks:result.data.blocks.length,visualNotice:result.visualNotice}));
+ }finally{await app?.close();}
+}
+main().catch(e=>{console.error(JSON.stringify({ok:false,status:e.getStatus?.(),message:e.message}));process.exitCode=1;});

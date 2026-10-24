@@ -1,0 +1,8 @@
+process.env.STORAGE_DRIVER='local';
+const {test}=require('node:test');const assert=require('node:assert/strict');const {CloudinaryStorage}=require('../dist/documents/cloudinary');
+test('Cloudinary preserves private delivery and signs every server operation',async()=>{
+ const previous={};for(const [key,value] of Object.entries({CLOUDINARY_CLOUD_NAME:'test-cloud',CLOUDINARY_API_KEY:'test-key',CLOUDINARY_API_SECRET:'test-secret'})){previous[key]=process.env[key];process.env[key]=value;}
+ const actual=global.fetch,calls=[];global.fetch=async(url,options={})=>{calls.push({url:String(url),options});return new Response(String(url).includes('/download?')?'original-bytes':'{}',{status:200});};
+ try{const storage=new CloudinaryStorage(),key='123e4567-e89b-42d3-a456-426614174000';await storage.put(key,Buffer.from('original-bytes'),'application/pdf');assert.equal(calls[0].options.body.get('type'),'private');assert.equal(calls[0].options.body.get('overwrite'),'false');assert.ok(calls[0].options.body.get('signature'));assert.equal((await storage.get(key)).toString(),'original-bytes');const url=new URL(calls[1].url);assert.equal(url.searchParams.get('type'),'private');assert.ok(Number(url.searchParams.get('expires_at'))>Number(url.searchParams.get('timestamp')));assert.ok(!calls[1].url.includes('test-secret'));await storage.delete(key);assert.equal(calls[2].options.body.get('type'),'private');assert.equal(calls[2].options.body.get('invalidate'),'true');await assert.rejects(()=>storage.get('../other-user'));
+ }finally{global.fetch=actual;for(const [k,v] of Object.entries(previous))if(v===undefined)delete process.env[k];else process.env[k]=v;}
+});

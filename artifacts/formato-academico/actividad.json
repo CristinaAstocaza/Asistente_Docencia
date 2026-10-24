@@ -1,0 +1,28 @@
+{
+  "title": "Actividad: uso responsable de IA en investigación",
+  "context": [
+    {
+      "title": "Tipo",
+      "content": "Muestra del formato de actividad"
+    }
+  ],
+  "achievement": "Analizar las oportunidades, los límites y las implicaciones éticas de la inteligencia artificial en la investigación científica.",
+  "generalInstructions": "Elabora un análisis crítico de un caso de uso de inteligencia artificial en investigación. Explica su aporte, contrasta evidencias y plantea condiciones para un uso responsable.",
+  "specificInstructions": [
+    "Selecciona y describe un caso concreto de aplicación de IA en investigación.",
+    "Contrasta las afirmaciones del caso con al menos dos fuentes verificables.",
+    "Identifica beneficios, riesgos y limitaciones; justifica cada punto con evidencia.",
+    "Explica cómo proteger la integridad académica y reconocer la contribución de la IA.",
+    "Formula conclusiones y recomendaciones alineadas con el análisis."
+  ],
+  "recommendations": [
+    "Organiza el informe en introducción, análisis, conclusiones y referencias.",
+    "Revisa los datos generados por IA y conserva las fuentes que los respaldan.",
+    "Distribuye y documenta las contribuciones de los participantes."
+  ],
+  "submission": [
+    "Producto: informe escrito con el caso, análisis y conclusiones.",
+    "Incluye una lista de referencias y declara el uso de herramientas de IA."
+  ],
+  "evaluation": "La rúbrica valora comprensión del caso, evidencia, análisis crítico, integridad académica, organización y colaboración."
+}

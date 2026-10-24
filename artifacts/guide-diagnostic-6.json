@@ -1,0 +1,43 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Creación de Componentes y Uso de Props en React",
+      "level": 2,
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "La arquitectura de React se fundamenta en la modularización de la interfaz de usuario mediante **componentes funcionales**. Un componente es una función de JavaScript que acepta entradas denominadas **props** (propiedades) y retorna elementos JSX que describen la interfaz visual. El uso de props permite que los componentes sean reutilizables y dinámicos, ya que actúan como parámetros de configuración que fluyen de manera unidireccional desde los componentes padres hacia los componentes hijos. Para mantener un código limpio y mantenible en Ingeniería de Sistemas, es indispensable estructurar cada componente en archivos independientes dentro del directorio src/components, aplicando la desestructuración de objetos en los parámetros para identificar claramente los datos esperados y evitar errores de tipado o referencias nulas en tiempo de ejecución.",
+      "rows": []
+    },
+    {
+      "type": "heading",
+      "text": "Ejemplo de Componente Reutilizable con Props",
+      "level": 3,
+      "rows": []
+    },
+    {
+      "type": "code",
+      "text": "export function TarjetaUsuario({ nombre, rol, activo }) {\n  return (\n    <div className=\"tarjeta\">\n      <h3>{nombre}</h3>\n      <p>Rol: {rol}</p>\n      <span className={activo ? \"badge-activo\" : \"badge-inactivo\"}>\n        {activo ? \"En línea\" : \"Desconectado\"}\n      </span>\n    </div>\n  );\n}",
+      "language": "jsx",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "El código anterior define un componente funcional llamado TarjetaUsuario que recibe tres props: nombre, rol y activo. La desestructuración se realiza directamente en la firma de la función. En el JSX se aplican expresiones condicionales mediante el operador ternario para modificar dinámicamente las clases CSS y el texto mostrado según el estado del usuario. El resultado esperado es un bloque visual independiente que puede instanciarse múltiples veces en la aplicación pasando diferentes valores en sus atributos.",
+      "rows": []
+    },
+    {
+      "type": "diagram",
+      "text": "Flujo de Datos Unidireccional con Props",
+      "items": [
+        "Componente Padre (App) define los datos iniciales",
+        "Se invocan los componentes hijos pasando atributos (props)",
+        "El componente hijo recibe las props como parámetros de función",
+        "El componente renderiza el JSX adaptado a los datos recibidos"
+      ],
+      "rows": []
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "title": "Rúbrica: uso responsable de IA en investigación",
+  "context": [
+    {
+      "title": "Tipo",
+      "content": "Muestra del formato de rúbrica"
+    }
+  ],
+  "scoringMode": "points",
+  "totalPoints": 20,
+  "criteria": [
+    {
+      "name": "Comprensión del caso",
+      "definition": "Evalúa la explicación de la aplicación de IA.",
+      "levels": [
+        {
+          "name": "Estándar esperado",
+          "score": 5,
+          "description": "Explica el caso con precisión y relaciona su uso con el proceso de investigación."
+        },
+        {
+          "name": "En proceso 2",
+          "score": 3.75,
+          "description": "Cumple el criterio con justificación suficiente; presenta una omisión puntual."
+        },
+        {
+          "name": "En proceso 1",
+          "score": 2.5,
+          "description": "Cumple parcialmente el criterio; falta sustento en aspectos relevantes."
+        },
+        {
+          "name": "Inicial",
+          "score": 1.25,
+          "description": "No desarrolla el criterio con evidencia suficiente o presenta información inconexa."
+        }
+      ]
+    },
+    {
+      "name": "Evidencia y fuentes",
+      "definition": "Evalúa la verificación de las afirmaciones.",
+      "levels": [
+        {
+          "name": "Estándar esperado",
+          "score": 5,
+          "description": "Contrasta fuentes verificables y justifica las principales afirmaciones del informe."
+        },
+        {
+          "name": "En proceso 2",
+          "score": 3.75,
+          "description": "Cumple el criterio con justificación suficiente; presenta una omisión puntual."
+        },
+        {
+          "name": "En proceso 1",
+          "score": 2.5,
+          "description": "Cumple parcialmente el criterio; falta sustento en aspectos relevantes."
+        },
+        {
+          "name": "Inicial",
+          "score": 1.25,
+          "description": "No desarrolla el criterio con evidencia suficiente o presenta información inconexa."
+        }
+      ]
+    },
+    {
+      "name": "Análisis crítico",
+      "definition": "Evalúa la identificación de oportunidades y límites.",
+      "levels": [
+        {
+          "name": "Estándar esperado",
+          "score": 4,
+          "description": "Analiza beneficios, riesgos y limitaciones con argumentos y evidencia."
+        },
+        {
+          "name": "En proceso 2",
+          "score": 3,
+          "description": "Cumple el criterio con justificación suficiente; presenta una omisión puntual."
+        },
+        {
+          "name": "En proceso 1",
+          "score": 2,
+          "description": "Cumple parcialmente el criterio; falta sustento en aspectos relevantes."
+        },
+        {
+          "name": "Inicial",
+          "score": 1,
+          "description": "No desarrolla el criterio con evidencia suficiente o presenta información inconexa."
+        }
+      ]
+    },
+    {
+      "name": "Integridad académica",
+      "definition": "Evalúa el reconocimiento y uso responsable de IA.",
+      "levels": [
+        {
+          "name": "Estándar esperado",
+          "score": 2,
+          "description": "Declara el uso de IA, verifica los datos y reconoce correctamente las fuentes."
+        },
+        {
+          "name": "En proceso 2",
+          "score": 1.5,
+          "description": "Cumple el criterio con justificación suficiente; presenta una omisión puntual."
+        },
+        {
+          "name": "En proceso 1",
+          "score": 1,
+          "description": "Cumple parcialmente el criterio; falta sustento en aspectos relevantes."
+        },
+        {
+          "name": "Inicial",
+          "score": 0.5,
+          "description": "No desarrolla el criterio con evidencia suficiente o presenta información inconexa."
+        }
+      ]
+    },
+    {
+      "name": "Organización del informe",
+      "definition": "Evalúa la coherencia del producto entregado.",
+      "levels": [
+        {
+          "name": "Estándar esperado",
+          "score": 2,
+          "description": "Presenta ideas ordenadas, conclusiones coherentes y referencias identificables."
+        },
+        {
+          "name": "En proceso 2",
+          "score": 1.5,
+          "description": "Cumple el criterio con justificación suficiente; presenta una omisión puntual."
+        },
+        {
+          "name": "En proceso 1",
+          "score": 1,
+          "description": "Cumple parcialmente el criterio; falta sustento en aspectos relevantes."
+        },
+        {
+          "name": "Inicial",
+          "score": 0.5,
+          "description": "No desarrolla el criterio con evidencia suficiente o presenta información inconexa."
+        }
+      ]
+    },
+    {
+      "name": "Colaboración",
+      "definition": "Evalúa la contribución de los integrantes.",
+      "levels": [
+        {
+          "name": "Estándar esperado",
+          "score": 2,
+          "description": "Documenta aportes y explica cómo el equipo integró su trabajo."
+        },
+        {
+          "name": "En proceso 2",
+          "score": 1.5,
+          "description": "Cumple el criterio con justificación suficiente; presenta una omisión puntual."
+        },
+        {
+          "name": "En proceso 1",
+          "score": 1,
+          "description": "Cumple parcialmente el criterio; falta sustento en aspectos relevantes."
+        },
+        {
+          "name": "Inicial",
+          "score": 0.5,
+          "description": "No desarrolla el criterio con evidencia suficiente o presenta información inconexa."
+        }
+      ]
+    }
+  ]
+}

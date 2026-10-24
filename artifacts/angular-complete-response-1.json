@@ -1,0 +1,29 @@
+{
+  "title": "Mini proyecto Angular: Lista de tareas",
+  "guideType": "Guía práctica de programación para principiantes",
+  "objectives": [
+    "Crear un proyecto Angular con componentes standalone.",
+    "Implementar un modelo de datos TypeScript para tareas.",
+    "Construir un formulario interactivo para agregar y eliminar tareas."
+  ],
+  "chapters": [
+    {
+      "title": "Apartado 1: Creación del proyecto e implementación completa",
+      "brief": "Desarrolla la inicialización de la aplicación Angular, la estructura de carpetas, el modelo de datos, la lógica del componente y la interfaz de usuario con formularios para crear y eliminar tareas."
+    }
+  ],
+  "imageSearches": [
+    {
+      "query": "Angular logo vector",
+      "chapter": 1
+    },
+    {
+      "query": "To do list icon",
+      "chapter": 1
+    },
+    {
+      "query": "Source code computer programming",
+      "chapter": 1
+    }
+  ]
+}

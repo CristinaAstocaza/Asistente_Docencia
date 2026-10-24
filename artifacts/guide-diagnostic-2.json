@@ -1,0 +1,37 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "2. Requisitos Previos y Entorno de Desarrollo",
+      "level": 2,
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Para iniciar el desarrollo de aplicaciones modernas con React, es fundamental configurar un entorno de trabajo robusto. A diferencia de las configuraciones tradicionales basadas en Webpack, hoy en día se utiliza **Vite** como herramienta de construcción (*bundler*), ya que ofrece un rendimiento superior y un servidor de desarrollo extremadamente rápido gracias al uso de módulos nativos de ECMAScript en el navegador.",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "El primer paso consiste en verificar la instalación de **Node.js** y un gestor de paquetes como **npm** o **pnpm** en su sistema operativo. Node.js es indispensable porque provee el motor de ejecución para las herramientas de desarrollo y dependencias del proyecto.",
+      "rows": []
+    },
+    {
+      "type": "code",
+      "text": "Verificación de versiones en la terminal:\nnode -v\nnpm -v",
+      "language": "bash",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Una vez confirmado el entorno base, procedemos a crear un nuevo proyecto ejecutando el asistente de configuración de Vite. Este comando descargará la plantilla base para React utilizando JavaScript o TypeScript según su preferencia.",
+      "rows": []
+    },
+    {
+      "type": "code",
+      "text": "Creación e inicialización del proyecto:\n# 1. Crear el proyecto con Vite\nnpm create vite@latest mi-app-react -- --template react\n\n# 2. Entrar al directorio\ncd mi-app-react\n\n# 3. Instalar dependencias\nnpm install\n\n# 4. Iniciar servidor de desarrollo\nnpm run dev",
+      "language": "bash",
+      "rows": []
+    }
+  ]
+}

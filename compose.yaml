@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: docente
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docente_dev}
+      POSTGRES_DB: docente
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - docente_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docente -d docente"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  docente_pg:

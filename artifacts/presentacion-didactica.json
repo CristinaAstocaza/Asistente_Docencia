@@ -1,0 +1,144 @@
+{
+  "title": "Inteligencia Artificial en el Aula: Guía Práctica para Docentes",
+  "style": "moderno",
+  "imageMode": "internet",
+  "slides": [
+    {
+      "title": "Revolucionando la Práctica Docente con IA",
+      "subtitle": "Estrategias para integrar la tecnología en el aprendizaje",
+      "content": [
+        "Una introducción al uso ético y pedagógico de la inteligencia artificial para transformar la enseñanza y potenciar el aprendizaje activo."
+      ],
+      "takeaway": "La IA es un copiloto pedagógico, no un sustituto del profesor.",
+      "imageQuery": "artificial intelligence robot",
+      "layout": "title",
+      "notes": "Bienvenidos a esta sesión sobre inteligencia artificial en la educación. El objetivo es desmitificar la IA y mostrar herramientas prácticas que faciliten vuestra labor diaria sin reemplazar el valor insustituible del docente. Guíe a los participantes a reflexionar sobre sus propias expectativas frente a la tecnología.",
+      "visualSuggestion": "Fotografía moderna de un aula iluminada con dispositivos digitales y docentes colaborando.",
+      "visual": {
+        "type": "none",
+        "items": []
+      }
+    },
+    {
+      "title": "Fundamentos y Funcionamiento de la IA Educativa",
+      "subtitle": "Comprendiendo la herramienta detrás de la pantalla",
+      "content": [
+        "Modelos de lenguaje y algoritmos entrenados para procesar lenguaje natural, asistir en la redacción y proponer dinámicas de clase.",
+        "Generación automática de cuestionarios adaptados al nivel previo detectado en las respuestas iniciales del alumnado.",
+        "Diseño de planes de estudio personalizados según los intereses detectados en las interacciones previas de los estudiantes.",
+        "¿Cómo podemos verificar que las sugerencias del algoritmo son pedagógicamente sólidas y libres de sesgos?"
+      ],
+      "takeaway": "Comprender el funcionamiento técnico ayuda a usar la IA con criterio crítico.",
+      "imageQuery": "artificial intelligence computer",
+      "layout": "bullets",
+      "notes": "Es fundamental comprender que la IA no 'piensa', sino que predice secuencias de texto basándose en patrones masivos. Para el docente, esto significa que debemos actuar como editores críticos, revisando siempre la precisión y el tono de cualquier contenido generado por la máquina antes de llevarlo al aula.",
+      "visualSuggestion": "Imagen cercana de una interfaz de procesamiento de lenguaje natural en una pantalla.",
+      "visual": {
+        "type": "diagram",
+        "items": [
+          {
+            "label": "1. Entrada de datos"
+          },
+          {
+            "label": "2. Procesamiento algorítmico"
+          },
+          {
+            "label": "3. Generación de propuesta"
+          },
+          {
+            "label": "4. Validación docente"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Automatización de Tareas vs. Creatividad Docente",
+      "subtitle": "Equilibrio entre eficiencia tecnológica y calidez humana",
+      "content": [
+        "La IA reduce la carga administrativa automatizando la redacción de rúbricas, correos institucionales y borradores de temarios.",
+        "El docente redirige ese tiempo ahorrado hacia la mentoría individual, la empatía y el diseño de experiencias de aprendizaje profundas.",
+        "Comparativa: Las tareas repetitivas se delegan en el algoritmo; el juicio crítico, la inspiración y la ética permanecen en el humano.",
+        "¿Qué tarea administrativa consume más tiempo en tu semana y cómo podría estructurarse un prompt inicial para delegarla?"
+      ],
+      "takeaway": "Automatizar lo mecánico potencia el tiempo dedicado al vínculo pedagógico.",
+      "imageQuery": "laptop computer",
+      "layout": "two-column",
+      "notes": "Esta diapositiva aborda el miedo común a la automatización. Explique que la tecnología asume el trabajo operativo y repetitivo, liberando tiempo valioso para la conexión humana y el acompañamiento emocional, aspectos donde la máquina no puede competir.",
+      "visualSuggestion": "Fotografía de un profesor sonriente revisando trabajos mientras un portátil muestra gráficos.",
+      "visual": {
+        "type": "none",
+        "items": []
+      }
+    },
+    {
+      "title": "Diseño de Prompts Efectivos para el Aula",
+      "subtitle": "El arte de dialogar correctamente con los modelos de lenguaje",
+      "content": [
+        "Un buen comando (prompt) incluye rol específico, contexto detallado, formato de salida deseado y restricciones claras de tono.",
+        "Ejemplo: 'Actúa como profesor de historia, redacta una explicación sobre la Revolución Francesa para alumnos de 12 años usando analogías deportivas'.",
+        "Aplicación directa en la creación de materiales diferenciados para estudiantes con distintos ritmos de aprendizaje en la misma sesión.",
+        "¿Qué elementos consideras imprescindibles al redactar una instrucción para asegurar que el resultado se ajuste a tu grupo?"
+      ],
+      "takeaway": "La precisión en la instrucción determina la calidad del recurso educativo obtenido.",
+      "imageQuery": "computer classroom",
+      "layout": "bullets",
+      "notes": "El éxito al usar IA conversacional depende de la calidad de la instrucción. Guíe a los docentes a practicar la fórmula 'Rol + Tarea + Contexto + Formato'. Realice un ejemplo en vivo si es posible para mostrar cómo cambia el resultado al refinar el prompt.",
+      "visualSuggestion": "Primer plano de manos escribiendo instrucciones detalladas en un teclado de ordenador.",
+      "visual": {
+        "type": "diagram",
+        "items": [
+          {
+            "label": "Definir Rol"
+          },
+          {
+            "label": "Aportar Contexto"
+          },
+          {
+            "label": "Especificar Formato"
+          },
+          {
+            "label": "Revisar y Ajustar"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Taller Exprés: Creación de una Rúbrica Inteligente",
+      "subtitle": "Experimentación guiada con herramientas de generación de texto",
+      "content": [
+        "Ejercicio práctico en parejas: Redacten un prompt para generar una rúbrica de evaluación para un debate escolar sobre cambio climático.",
+        "Establezcan en la instrucción los criterios de evaluación: argumentación basada en evidencias, respeto al turno y claridad expositiva.",
+        "Intercambien los resultados obtenidos con otra pareja para evaluar qué nivel de personalización y precisión logró cada instrucción.",
+        "Compartan en plenaria cuál fue la instrucción que generó el resultado más útil y qué modificaciones posteriores debieron realizar."
+      ],
+      "takeaway": "La práctica colaborativa acelera la curva de aprendizaje en herramientas digitales.",
+      "imageQuery": "computer classroom students",
+      "layout": "activity",
+      "notes": "Momento de práctica activa. Permita 5 minutos para que los docentes redacten su prompt, lo prueben en sus dispositivos y compartan el resultado. Respuesta orientativa esperada: Las rúbricas iniciales son genéricas, pero al añadir restricciones de nivel y formato, la IA produce tablas listas para usar.",
+      "visualSuggestion": "Docentes trabajando en equipo alrededor de una mesa con ordenadores y notas adhesivas.",
+      "visual": {
+        "type": "none",
+        "items": []
+      }
+    },
+    {
+      "title": "Hacia un Futuro Ético y Sostenible con IA",
+      "subtitle": "Responsabilidad, criterio y visión de futuro en la educación",
+      "content": [
+        "Desafíos actuales: Privacidad de datos estudiantiles, sesgos algorítmicos y dependencia excesiva de respuestas automatizadas.",
+        "La alfabetización en IA debe ser transversal, enseñando al alumnado a cuestionar la veracidad y el origen de los contenidos digitales.",
+        "Compromiso docente: Fomentar la honestidad académica estableciendo pautas claras sobre cuándo y cómo usar asistentes inteligentes.",
+        "¿Cómo integrarás estas herramientas en tu próxima unidad didáctica manteniendo el pensamiento crítico como eje central?"
+      ],
+      "takeaway": "El pensamiento crítico es el mejor filtro frente a cualquier tecnología emergente.",
+      "imageQuery": "teacher computer classroom",
+      "layout": "conclusion",
+      "notes": "Cierre la sesión recapitulando los puntos clave. Enfatice que la tecnología avanza rápido, pero los valores éticos y el pensamiento crítico son el ancla de la buena educación. Invite a los profesores a dar el primer paso probando una sola herramienta esta semana.",
+      "visualSuggestion": "Imagen inspiradora de un atardecer sobre un edificio escolar moderno con siluetas digitales.",
+      "visual": {
+        "type": "none",
+        "items": []
+      }
+    }
+  ]
+}

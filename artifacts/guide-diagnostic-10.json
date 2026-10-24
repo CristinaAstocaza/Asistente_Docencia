@@ -1,0 +1,42 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "7. Manejo de Efectos Secundarios con useEffect",
+      "level": 2,
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "En el desarrollo de aplicaciones web con React, los **efectos secundarios** (side effects) corresponden a cualquier operación que interactúe con elementos fuera del ámbito de renderizado puro del componente. Esto incluye solicitudes a APIs externas, manipulación directa del DOM, suscripciones a eventos o el uso de temporizadores como `setInterval`. Para manejar estas tareas de forma controlada dentro de componentes funcionales, React provee el Hook **useEffect**. Este mecanismo permite ejecutar código después de que el navegador ha pintado la interfaz, evitando bloqueos en el hilo principal durante el renderizado inicial y las actualizaciones subsecuentes.",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "El comportamiento de `useEffect` se controla mediante su segundo argumento: el **arreglo de dependencias**. Si se omite este arreglo, el efecto se ejecuta tras cada renderizado del componente. Si se pasa un arreglo vacío `[]`, el efecto se ejecuta únicamente una vez, imitando el ciclo de vida del montaje inicial. Cuando se incluyen variables específicas dentro del arreglo, el efecto se disparará cada vez que cualquiera de dichas variables experimente un cambio en su valor. Asimismo, el hook permite retornar una función de limpieza (cleanup function) para desmontar suscripciones o cancelar peticiones activas, previniendo fugas de memoria y errores de actualización en componentes inactivos.",
+      "rows": []
+    },
+    {
+      "type": "code",
+      "text": "import React, { useState, useEffect } from 'react';\n\nexport function UserProfile({ userId }) {\n  const [user, setUser] = useState(null);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    let isMounted = true;\n    setLoading(true);\n    fetch(`https://jsonplaceholder.typicode.com/users/${userId}`)\n      .then(res => res.json())\n      .then(data => {\n        if (isMounted) {\n          setUser(data);\n          setLoading(false);\n        }\n      });\n    return () => { isMounted = false; };\n  }, [userId]);\n\n  if (loading) return <p>Cargando perfil...</p>;\n  return <div><h3>{user.name}</h3><p>{user.email}</p></div>;\n}",
+      "language": "jsx",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Explicación del código: La función `useEffect` recibe una función asíncrona que realiza una petición `fetch` basada en el parámetro `userId`. Al incluir `userId` en el arreglo de dependencias, la API es consultada nuevamente cada vez que el identificador cambia. La variable `isMounted` actúa como bandera para evitar la actualización de estado si el componente se desmonta antes de recibir la respuesta de la red.",
+      "rows": []
+    },
+    {
+      "type": "diagram",
+      "text": "Ciclo de Vida y Ejecución de useEffect",
+      "items": [
+        "Renderizado inicial del componente en el DOM",
+        "Pintado de la interfaz de usuario en el navegador",
+        "Ejecución del callback definido dentro de useEffect",
+        "Evaluación del arreglo de dependencias para futuras ejecuciones"
+      ],
+      "rows": []
+    }
+  ]
+}

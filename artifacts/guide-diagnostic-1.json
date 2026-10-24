@@ -1,0 +1,42 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "1. Introducción y Fundamentos de React",
+      "level": 1,
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "El desarrollo moderno de interfaces de usuario ha evolucionado desde el DOM imperativo tradicional hacia paradigmas declarativos impulsados por librerías como React. En el enfoque imperativo, el desarrollador detalla paso a paso cada modificación que debe sufrir la interfaz ante un evento. En contraste, el paradigma declarativo de React permite describir el estado visual de la aplicación en función de los datos actuales, delegando en el motor de la librería la tarea de actualizar eficientemente el DOM cuando dichos datos cambian.",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "La arquitectura de React se sustenta firmemente en la modularidad y la reutilización a través de componentes. Un componente es una porción independiente y autocontenida de interfaz que encapsula su propia estructura visual, lógica de comportamiento y estilo. Esta arquitectura basada en componentes facilita enormemente la escalabilidad en proyectos de ingeniería de sistemas, permitiendo que equipos de desarrollo trabajen de forma paralela en distintas secciones de una aplicación compleja sin generar conflictos de integración.",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "El ecosistema de React se complementa con herramientas de compilación avanzadas, enrutadores y gestores de estado global, formando una base sólida para aplicaciones web robustas. A lo largo de esta guía, utilizaremos componentes funcionales modernos apoyados en Hooks, un mecanismo que permite incorporar lógica de estado y efectos secundarios sin necesidad de recurrir a clases tradicionales.",
+      "rows": []
+    },
+    {
+      "type": "heading",
+      "text": "Comparativa de Paradigmas de Desarrollo",
+      "level": 2,
+      "rows": []
+    },
+    {
+      "type": "table",
+      "text": "Tabla comparativa entre el desarrollo imperativo tradicional y el desarrollo declarativo basado en React.",
+      "rows": [
+        ["Criterio", "Desarrollo Imperativo (DOM Tradicional)", "Desarrollo Declarativo (React)"],
+        ["Enfoque principal", "Cómo cambiar la interfaz paso a paso.", "Qué mostrar según el estado actual."],
+        ["Manipulación del DOM", "Manual, directa y propensa a errores.", "Automatizada mediante el DOM virtual."],
+        ["Escalabilidad", "Baja en aplicaciones grandes y complejas.", "Alta gracias a la arquitectura de componentes."],
+        ["Mantenimiento", "Complejo debido al acoplamiento estrecho.", "Modular y simplificado por la separación de responsabilidades."]
+      ]
+    }
+  ]
+}

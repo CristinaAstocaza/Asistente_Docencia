@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "5. Gestión de Estado Local con useState",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "A diferencia de las **props**, que son inmutables y fluyen de manera descendente desde el componente padre hacia el hijo, el **estado local** representa información interna que puede cambiar a lo largo del tiempo debido a interacciones del usuario, respuestas de red o temporizadores. En React, el estado se gestiona mediante el Hook **useState**, una función especial que permite a los componentes funcionales recordar información entre renderizados sucesivos."
+    },
+    {
+      "type": "paragraph",
+      "text": "Cuando se invoca a `useState`, este retorna un arreglo con dos elementos: el valor actual del estado y una **función actualizadora**. Cada vez que se ejecuta la función actualizadora, React programa una actualización del componente, recalcula la interfaz de usuario de manera eficiente utilizando el DOM virtual y refleja los cambios visuales correspondientes de forma inmediata y sincronizada."
+    },
+    {
+      "type": "code",
+      "text": "import React, { useState } from 'react';\n\nexport function Contador() {\n  const [contador, setContador] = useState(0);\n\n  function incrementar() {\n    setContador(contador + 1);\n  }\n\n  return (\n    <div>\n      <p>Valor actual: {contador}</p>\n      <button onClick={incrementar}>Sumar</button>\n    </div>\n  );\n}",
+      "language": "javascript"
+    },
+    {
+      "type": "paragraph",
+      "text": "El código anterior declara un estado llamado `contador` inicializado en cero. La función `incrementar` invoca a `setContador` sumando uno al valor previo. Al hacer clic en el botón, el componente se vuelve a renderizar automáticamente mostrando el nuevo número en pantalla sin recargar la página."
+    }
+  ]
+}

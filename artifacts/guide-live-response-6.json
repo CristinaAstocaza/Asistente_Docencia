@@ -1,0 +1,39 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Rúbrica de Evaluación del Desempeño Práctico (Checklist de Competencias)",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Para aprobar la sesión de laboratorio de inyección intramuscular, el estudiante debe demostrar un dominio absoluto de la técnica aséptica, el respeto estricto de las referencias anatómicas y la aplicación correcta de la técnica de la Z-track. El docente evaluará cada ítem utilizando una escala dicotómica (Logrado / No logrado), requiriendo un 100% de cumplimiento en los ítems críticos de seguridad del paciente."
+    },
+    {
+      "type": "table",
+      "text": "Instrumento de Evaluación Objetiva Estructurada para el Docente",
+      "rows": [
+        ["Fase del Procedimiento", "Criterio de Evaluación", "Logrado", "No Logrado"],
+        ["Preparación", "Verifica los correctos de farmacología (paciente, fármaco, dosis, vía, horario) y calcula el volumen máximo según la masa muscular.", "", ""],
+        ["Asepsia", "Realiza lavado de manos clínico, utiliza guantes y desinfecta el sitio de punción del centro a la periferia.", "", ""],
+        ["Anatomía", "Identifica correctamente las referencias óseas y delimita el sitio de punción (ej. cuadrante superior externo o zona ventroglútea).", "", ""],
+        ["Técnica", "Aplica la técnica de la Z-track, introduce la aguja a 90 grados con firmeza y aspira para descartar retorno venoso.", "", ""],
+        ["Seguridad", "Administra lentamente (10 segundos por ml), retira la aguja en el mismo ángulo y desecha el material en el contenedor rígido sin encapuchar.", "", ""]
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "Cuestionario de Autoevaluación Reflexiva",
+      "level": 2
+    },
+    {
+      "type": "list",
+      "text": "Responda las siguientes preguntas de reflexión clínica al finalizar su práctica simulada para consolidar el aprendizaje:",
+      "items": [
+        "¿Qué estrategia anatómica utilizó para evitar la lesión del nervio ciático durante la punción en la región glútea y por qué se prefiere actualmente la zona ventroglútea?",
+        "Explique detalladamente qué efecto fisiológico busca la técnica de la Z-track sobre el tejido subcutáneo y el trayecto muscular.",
+        "¿Cuál sería su conducta inmediata si al realizar la maniobra de aspiración observa retorno de sangre en la jeringa?"
+      ]
+    }
+  ]
+}

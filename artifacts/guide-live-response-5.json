@@ -1,0 +1,49 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Aplicación Práctica y Resolución de Casos Clínicos Simulados",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "La toma de decisiones clínicas en la administración de medicamentos por vía intramuscular exige integrar el conocimiento anatómico, las propiedades farmacológicas del fármaco y las características antropométricas del paciente. A continuación, se presentan dos casos clínicos diseñados para el análisis y la resolución en el entorno de laboratorio."
+    },
+    {
+      "type": "heading",
+      "text": "Caso Clínico 1: Paciente Adulto con Requerimiento de Analgesia",
+      "level": 3
+    },
+    {
+      "type": "paragraph",
+      "text": "Paciente varón de 45 años, con un índice de masa corporal (IMC) de 28 kg/m² (sobrepeso), acude al servicio de urgencias con lumbalgia aguda. Se prescribe ketorolaco 60 mg IM en dosis única. El volumen comercial disponible es de 60 mg / 2 mL."
+    },
+    {
+      "type": "list",
+      "text": "Parámetros de selección para el Caso 1:",
+      "items": [
+        "Zona anatómica recomendada: Ventroglútea, debido a la presencia de tejido adiposo moderado en la región glútea posterior y para evitar el riesgo de lesión del nervio ciático.",
+        "Calibre y longitud de aguja: 21G a 22G con una longitud de 38 mm (1.5 pulgadas) para asegurar que la punta atraviese el tejido subcutáneo y alcance la masa muscular profunda.",
+        "Volumen máximo y técnica: 2 mL se encuentra dentro del rango seguro para la zona ventroglútea (hasta 3-5 mL en adultos). Se aplicará técnica Z-track por el potencial irritante del fármaco antiinflamatorio."
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "Caso Clínico 2: Paciente Pediátrico en Control de Vacunación",
+      "level": 3
+    },
+    {
+      "type": "paragraph",
+      "text": "Llactante de 12 meses de edad que acude a control de crecimiento y desarrollo para recibir vacuna pentavalente (0.5 mL). El lactante presenta desarrollo muscular acorde a su edad."
+    },
+    {
+      "type": "list",
+      "text": "Parámetros de selección para el Caso 2:",
+      "items": [
+        "Zona anatómica recomendada: Vasto lateral de la pierna (muslo), por ser la zona de elección en lactantes menores de 2 años al estar el cuádriceps mejor desarrollado y carecer de grandes vasos o nervios de riesgo.",
+        "Calibre y longitud de aguja: 23G a 25G con una longitud de 25 mm (1 pulgada) para evitar sobrepasar el músculo y lesionar el plano óseo o subcutáneo profundo.",
+        "Volumen máximo y técnica: 0.5 mL es el límite máximo recomendado para el músculo vasto lateral en lactantes. No requiere técnica Z-track en inmunizaciones rutinarias estándar."
+      ]
+    }
+  ]
+}

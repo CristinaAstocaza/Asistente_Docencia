@@ -1,0 +1,12 @@
+"use client";
+import {useRef,useState} from 'react';
+import {Paperclip,FileText,X} from 'lucide-react';
+import {api,errorMessage,Source} from '@/services/api';
+export default function PresentationBrief({instructions,onInstructions,onReference,onBusy,disabled}:{instructions:string;onInstructions:(value:string)=>void;onReference:(source:Source|null)=>void;onBusy:(busy:boolean)=>void;disabled:boolean}){
+ const input=useRef<HTMLInputElement>(null);const [file,setFile]=useState<Source|null>(null),[uploading,setUploading]=useState(false),[error,setError]=useState('');
+ async function upload(value:File){
+  setError('');if(!value.name.toLowerCase().endsWith('.pdf')){setError('Selecciona una presentación en PDF.');return;}if(value.size>50*1024*1024){setError('El PDF debe pesar como máximo 50 MB.');return;}
+  setUploading(true);onBusy(true);try{const body=new FormData();body.append('file',value);const source=await api<Source>('/documents',{method:'POST',body});setFile(source);onReference(source);}catch(e){setError(errorMessage(e));}finally{setUploading(false);onBusy(false);}
+ }
+ return <section className="presentation-brief"><label className="field">Indicaciones para la IA (opcional)<textarea rows={4} maxLength={3000} disabled={disabled||uploading} value={instructions} onChange={e=>onInstructions(e.target.value)} placeholder="Ej.: Empieza con un caso, explica con ejemplos sencillos y termina con una actividad. Usa poco texto por diapositiva."/></label><div className="toolbar"><button type="button" className="btn" disabled={disabled||uploading} onClick={()=>input.current?.click()}><Paperclip size={18}/>{uploading?'Adjuntando PDF…':file?'Cambiar PDF de ejemplo':'Añadir PDF de ejemplo'}</button><input className="sr-only" ref={input} type="file" accept="application/pdf,.pdf" aria-label="Adjuntar presentación de ejemplo en PDF" onChange={e=>{const value=e.target.files?.[0];if(value)void upload(value);e.target.value='';}}/></div>{file&&<div className="presentation-reference"><FileText size={20}/><span>{file.name}</span><button type="button" className="btn icon" disabled={disabled||uploading} aria-label="Quitar PDF de ejemplo" onClick={()=>{setFile(null);onReference(null);}}><X size={16}/></button></div>}<p className="muted">La IA tomará el PDF como ejemplo de estructura y explicación. Se guardará también en tus fuentes. No reproduce exactamente el diseño visual.</p>{error&&<p className="error-box" role="alert">{error}</p>}</section>;
+}

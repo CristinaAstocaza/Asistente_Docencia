@@ -1,0 +1,41 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Procedimiento paso a paso para la administración intramuscular",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "La ejecución correcta de la **inyección intramuscular** en el entorno de laboratorio requiere una secuencia estricta basada en la **técnica aséptica** y la prevención de complicaciones locales. Antes de realizar la punción, verifique los **correctos de la administración de medicamentos** (paciente correcto, fármaco correcto, dosis correcta, vía correcta y horario correcto). Prepare el material necesario: jeringa de volumen adecuado, aguja de calibre 21G a 23G (con longitud de 25 a 38 mm según el sitio anatómico y tejido adiposo del paciente), torundas con alcohol al 70%, guantes no estériles y contenedor para material punzocortante."
+    },
+    {
+      "type": "heading",
+      "text": "Aplicación de la técnica Z-track",
+      "level": 3
+    },
+    {
+      "type": "paragraph",
+      "text": "La **técnica Z-track** o de desviación tisular es el método de elección para prevenir la fuga del medicamento hacia el tejido subcutáneo, reduciendo el dolor y la irritación química. Para su ejecución, desplace la piel y el tejido subcutáneo aproximadamente de 2.5 a 3 cm hacia un lado utilizando el borde cubital de la mano no dominante. Mantenga esta tracción firmemente durante todo el procedimiento. Introduzca la aguja en un ángulo de **90 grados** con un movimiento firme y rápido. Aspire durante 5 a 10 segundos para confirmar que no hay retorno de sangre; si la aspiración es negativa, inyecte el medicamento lentamente a una velocidad constante de 1 mL cada 10 segundos. Espere 10 segundos adicionales antes de retirar la aguja para permitir la dispersión del fármaco en el tejido muscular. Finalmente, retire la aguja con rapidez siguiendo el mismo ángulo de entrada y suelte la piel traccionada para que el trayecto del tejido se selle en forma de Z."
+    },
+    {
+      "type": "heading",
+      "text": "Ejemplo práctico de cálculo y conversión de volumen",
+      "level": 3
+    },
+    {
+      "type": "paragraph",
+      "text": "Considere la prescripción de 500 mg de una solución antibiótica intramuscular. El frasco ámpula se reconstituye con 2 mL de agua estéril, obteniendo una concentración final de 250 mg/mL. Aplicando la fórmula de cálculo de dosis ($Dosis Prescrita / Concentración Disponible$), el estudiante determina que se requieren **2 mL** de solución. Dado que el volumen máximo permitido en el músculo deltoides es de 1 mL, y en el vasto lateral o ventroglúteo es de hasta 3 a 5 mL en adultos, el estudiante selecciona el sitio **ventroglúteo** para administrar la dosis completa en una sola punción, evitando así fraccionar el medicamento en dos sitios anatómicos diferentes."
+    },
+    {
+      "type": "list",
+      "text": "Pasos críticos posteriores a la administración:",
+      "items": [
+        "No reencapsule la aguja bajo ninguna circunstancia para evitar lesiones por pinchazo accidental.",
+        "Descarte inmediatamente la jeringa con la aguja acoplada en el contenedor rígido para residuos punzocortantes.",
+        "Coloque una ligera presión con una compresa seca en el sitio de punción, evitando el masaje vigoroso si el fármaco es irritante.",
+        "Registre el procedimiento en la historia clínica anotando fármaco, dosis, sitio anatómico exacto y la respuesta del paciente."
+      ]
+    }
+  ]
+}

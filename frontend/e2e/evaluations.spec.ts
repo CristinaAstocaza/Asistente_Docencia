@@ -1,0 +1,48 @@
+import {test,expect} from '@playwright/test';
+const id='00000000-0000-4000-8000-000000000001';
+const material={id,kind:'exam',title:'Evaluación de biología',version:1,mode:'general',source_ids:[],citations:[],data:{title:'Evaluación de biología',duration:45,instructions:'Marca la respuesta correcta.',questions:[{type:'multiple_choice',question:'¿Qué estructura contiene el material genético?',options:['Núcleo','Membrana'],correctAnswer:'Núcleo',explanation:'Contiene el ADN.',difficulty:'medium',topic:'Célula',source:'Conocimiento general'}]}};
+test('evaluations keep their PDF download, editing and field help',async({page})=>{
+ await page.route('**/api/auth/me',r=>r.fulfill({json:{id:'teacher',name:'Docente',email:'docente@example.test'}}));
+ await page.route('**/api/documents',r=>r.fulfill({json:[]}));
+ await page.route('**/api/content',r=>r.fulfill({json:[]}));
+ await page.route(`**/api/content/${id}`,r=>r.fulfill({json:material}));
+ await page.route(`**/api/content/${id}/export`,r=>{expect(r.request().postDataJSON().format).toBe('pdf');return r.fulfill({contentType:'application/pdf',body:'%PDF-1.4\n',headers:{'Content-Disposition':'attachment; filename="evaluacion.pdf"'}});});
+ await page.goto(`/evaluaciones?id=${id}`);
+ await expect(page.getByRole('heading',{name:'Evaluaciones',exact:true})).toBeVisible();
+ await expect(page.locator('.evaluation-start')).toHaveCount(0);
+ await expect(page.getByRole('spinbutton',{name:'Número de preguntas',exact:true})).toHaveAttribute('max','50');
+ const help=page.locator('.field').filter({has:page.getByRole('combobox',{name:'Dificultad',exact:true})}).locator('.field-help');
+ await help.focus();await expect(help.getByRole('tooltip')).toContainText('aplicar lo aprendido');
+ const downloading=page.waitForEvent('download');await page.getByRole('button',{name:'Descargar PDF',exact:true}).click();expect((await downloading).suggestedFilename()).toBe(`${material.title}.pdf`);
+ await page.getByRole('button',{name:'Editar',exact:true}).click();await expect(page.getByRole('button',{name:'Guardar',exact:true})).toBeVisible();
+});
+test('exam editor navigates one question at a time and saves theory and case edits together',async({page})=>{
+ const theory={...material.data.questions[0],type:'development',question:'Explica la función del ADN.',options:[],correctAnswer:'Almacena información genética.'};
+ const caseQuestion={...theory,type:'case_study',question:'Una célula presenta una alteración genética.',subquestions:[{question:'Identifica una causa posible.',correctAnswer:'Una mutación.'},{question:'Explica una consecuencia.',correctAnswer:'Cambios en proteínas.'}]};
+ const mixed={...material,data:{...material.data,questions:[theory,caseQuestion]}};let saved:typeof mixed.data|undefined;
+ await page.route('**/api/auth/me',r=>r.fulfill({json:{id:'teacher',name:'Docente',email:'docente@example.test'}}));
+ await page.route('**/api/documents',r=>r.fulfill({json:[]}));await page.route('**/api/content',r=>r.fulfill({json:[]}));
+ await page.route(`**/api/content/${id}`,r=>{if(r.request().method()==='PATCH'){saved=r.request().postDataJSON().data;return r.fulfill({json:{...mixed,data:saved,version:2}});}return r.fulfill({json:mixed});});
+ await page.goto(`/evaluaciones?id=${id}`);await page.getByRole('button',{name:'Editar',exact:true}).click();
+ const editor=page.locator('.exam-editor');await expect(editor.getByRole('status')).toHaveText('Pregunta 1 de 2');await expect(editor.getByRole('combobox',{name:'Tipo',exact:true})).toHaveCount(0);
+ await editor.getByRole('textbox',{name:'Enunciado de la pregunta',exact:true}).fill('Explica el ADN con un ejemplo.');
+ await editor.getByRole('button',{name:'Siguiente',exact:true}).click();await expect(editor.getByRole('status')).toHaveText('Pregunta 2 de 2');
+ await editor.getByRole('textbox',{name:'Subpunto a)',exact:true}).fill('Identifica y justifica una causa posible.');
+ await editor.getByRole('button',{name:'Anterior',exact:true}).click();await expect(editor.getByRole('textbox',{name:'Enunciado de la pregunta',exact:true})).toHaveValue('Explica el ADN con un ejemplo.');
+ await expect(page.locator('a[aria-disabled="true"]').filter({hasText:'Crear presentaciones'})).not.toHaveAttribute('href');
+ await page.getByRole('button',{name:'Guardar',exact:true}).click();await expect(editor).toHaveCount(0);
+ expect(saved?.questions[0].question).toBe('Explica el ADN con un ejemplo.');expect((saved?.questions[1] as typeof caseQuestion).subquestions[0].question).toBe('Identifica y justifica una causa posible.');
+ const link=page.getByRole('link',{name:'Crear presentaciones',exact:true});await expect(link).toHaveAttribute('href',`/presentaciones?from=${id}`);await link.click();
+ await expect(page.getByRole('heading',{name:'Presentaciones',exact:true})).toBeVisible();await expect(page.getByRole('textbox',{name:'¿Qué historia vas a contar?',exact:true})).toHaveValue(material.title);
+});
+test('syllabus PDF pre-fills fields, keeps custom sections editable and restores the manual form',async({page})=>{
+ await page.route('**/api/auth/me',r=>r.fulfill({json:{id:'teacher',name:'Docente',email:'docente@example.test'}}));
+ await page.route('**/api/documents',r=>r.fulfill({json:r.request().method()==='POST'?{id,name:'silabo.pdf',type:'PDF',status:'processing',folder:''}:[]}));
+ await page.route('**/api/syllabus/import',r=>r.fulfill({json:{topic:'Comunicación efectiva',fields:{course:'Comunicación efectiva',credits:'4',weeks:'16',institution:'Instituto de prueba'},sections:[{title:'Reglas institucionales',content:'Citar todas las fuentes.'}]}}));
+ await page.goto('/silabos');await expect(page.getByRole('textbox',{name:'Curso',exact:true})).toHaveValue('');
+ await page.getByLabel('Adjuntar sílabo en PDF',{exact:true}).setInputFiles({name:'silabo.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4')});
+ await expect(page.getByRole('textbox',{name:'Curso',exact:true})).toHaveValue('Comunicación efectiva');await expect(page.getByRole('spinbutton',{name:'Créditos',exact:true})).toHaveValue('4');
+ await page.getByRole('textbox',{name:'Información del apartado',exact:true}).fill('Citar las fuentes con APA.');
+ await expect(page.getByRole('textbox',{name:'Información del apartado',exact:true})).toHaveValue('Citar las fuentes con APA.');
+ await page.getByRole('button',{name:'Quitar sílabo PDF base',exact:true}).click();await expect(page.getByRole('textbox',{name:'Curso',exact:true})).toHaveValue('');await expect(page.getByRole('spinbutton',{name:'Créditos',exact:true})).toHaveValue('3');await expect(page.getByRole('textbox',{name:'Información del apartado',exact:true})).toHaveCount(0);
+});

@@ -1,0 +1,39 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Anatomía de las Zonas de Punción y Selección del Sitio Adecuado",
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "La elección correcta del sitio anatómico para la **inyección intramuscular** es el paso crítico para garantizar una absorción farmacológica óptima y prevenir complicaciones severas como lesiones en troncos nerviosos mayores, daño vascular o formación de abscesos estériles. El enfermero debe basar su selección en la edad del paciente, el volumen del medicamento y las características del tejido muscular disponible."
+    },
+    {
+      "type": "heading",
+      "text": "Zonas Principales de Inyección Intramuscular",
+      "level": 2
+    },
+    {
+      "type": "list",
+      "text": "Delimitación anatómica de las cuatro zonas recomendadas:",
+      "items": [
+        "**Ventroglútea:** Considerada la zona más segura y libre de grandes vasos y nervios. Se localiza colocando la palma de la mano sobre el trocánter mayor del paciente, con el dedo índice apuntando hacia la espina ilíaca anterosuperior y el dedo medio extendido a lo largo de la cresta ilíaca hacia el tubérculo ilíaco, formando un triángulo donde se realiza la punción.",
+        "**Vasto lateral del cuádriceps:** Situada en el tercio medio de la cara anterolateral del muslo. Es la zona de elección en lactantes y niños pequeños por su gran desarrollo muscular y ausencia de estructuras vasculonerviosas mayores.",
+        "**Deltoides:** Ubicada en la región superior del brazo. Su límite superior es el borde inferior del acromion y el límite inferior forma un triángulo con vértice en la axila. Su uso se restringe a volúmenes menores a 1 mL debido a su limitada masa muscular.",
+        "**Dorsoglútea:** Situada en el cuadrante superior externo del glúteo, delimitada por la cresta ilíaca y la línea interglútea. Actualmente su uso está desaconsejado debido al riesgo potencial de lesión en el **nervio ciático** y punción accidental de la arteria glútea superior."
+      ]
+    },
+    {
+      "type": "table",
+      "text": "Cuadro comparativo para la selección del sitio según volumen y tipo de paciente",
+      "rows": [
+        ["Zona Anatómica", "Volumen Máximo", "Edad Recomendada", "Riesgo Principal"],
+        ["Ventroglútea", "Hasta 5.0 mL", "Adultos y niños > 7 meses", "Mínimo"],
+        ["Vasto Lateral", "Hasta 3.0 mL (5 mL en adultos)", "Lactantes, niños y adultos", "Dolor local moderado"],
+        ["Deltoides", "Hasta 1.0 mL", "Adultos y niños mayores", "Lesión del nervio radial y circunflejo"],
+        ["Dorsoglútea", "Hasta 4.0 mL", "Adultos (Evitar su uso)", "Lesión del nervio ciático"]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "title": "Mini proyecto Angular: Lista de tareas",
+  "guideType": "Guía práctica de programación para principiantes",
+  "objectives": [
+    "Crear un proyecto Angular con componentes standalone.",
+    "Implementar un modelo de datos TypeScript para tareas.",
+    "Construir un formulario interactivo para agregar y eliminar tareas."
+  ],
+  "blocks": [
+    {
+      "id": "a20329c3-7118-4854-a4cc-6fdb35da99c2",
+      "type": "heading",
+      "text": "Estructura de Directorios del Proyecto",
+      "level": 2,
+      "page": 2
+    },
+    {
+      "id": "57732d31-5182-4177-afb1-d5a2c6b11d3d",
+      "type": "paragraph",
+      "text": "A continuación se muestra el árbol de carpetas y archivos que componen la aplicación Angular standalone para la gestión de tareas.",
+      "page": 2
+    },
+    {
+      "id": "7aa638a2-48ed-44cb-8770-8ae2bccc547a",
+      "type": "code",
+      "text": "mi-app-tareas/\n├── src/\n│   ├── app/\n│   │   ├── task.model.ts\n│   │   ├── app.component.ts\n│   │   └── app.component.html\n│   ├── main.ts\n│   └── index.html\n└── package.json",
+      "language": "text",
+      "page": 2
+    },
+    {
+      "id": "acc9f62e-f4ed-4c98-8961-5ff0a923f00a",
+      "type": "heading",
+      "text": "Paso 1: Inicialización del proyecto",
+      "level": 2,
+      "page": 2
+    },
+    {
+      "id": "45c8940c-b42a-4eab-a742-30424874b733",
+      "type": "list",
+      "text": "Instrucciones para crear y levantar el entorno de desarrollo:",
+      "items": [
+        "1. Ejecuta el comando en tu terminal para crear el proyecto: npx @angular/cli new mi-app-tareas --routing=false --style=css",
+        "2. Entra a la carpeta del proyecto creado: cd mi-app-tareas",
+        "3. Inicia el servidor de desarrollo local: ng serve",
+        "4. Abre tu navegador en la dirección http://localhost:4200 para comprobar que Angular compila correctamente."
+      ],
+      "page": 2
+    },
+    {
+      "id": "fdfa595d-52f8-498a-9b2c-baf733515edb",
+      "type": "heading",
+      "text": "Paso 2: Creación del modelo de datos",
+      "level": 2,
+      "page": 2
+    },
+    {
+      "id": "cd4d026c-296c-42c8-bc2c-5f8576398ccb",
+      "type": "paragraph",
+      "text": "Crea el archivo task.model.ts para definir la estructura TypeScript de cada tarea.",
+      "page": 2
+    },
+    {
+      "id": "e79164d5-1699-4915-9021-c69d08f92d8f",
+      "type": "code",
+      "text": "export interface Task {\n  title: string;\n}",
+      "filePath": "src/app/task.model.ts",
+      "language": "typescript",
+      "page": 2
+    },
+    {
+      "id": "481dbf9e-53c7-4723-83dc-5478f4353e6e",
+      "type": "paragraph",
+      "text": "Comprobación: El modelo define correctamente una interfaz con la propiedad title de tipo string.",
+      "page": 2
+    },
+    {
+      "id": "7aa2e001-2ca2-46d5-94c8-a2b90e9ecb25",
+      "type": "heading",
+      "text": "Paso 3: Implementación del componente principal",
+      "level": 2,
+      "page": 2
+    },
+    {
+      "id": "1dbd7115-2f6e-4a43-93e4-b2e7d42d8ac5",
+      "type": "paragraph",
+      "text": "Configura app.component.ts utilizando componentes standalone, FormsModule y la lógica para añadir y eliminar tareas.",
+      "page": 2
+    },
+    {
+      "id": "f47256a4-a465-4829-8e82-bf536736df06",
+      "type": "code",
+      "text": "import { Component } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { Task } from './task.model';\n\n@Component({\n  selector: 'app-root',\n  standalone: true,\n  imports: [CommonModule, FormsModule],\n  templateUrl: './app.component.html',\n  styleUrls: ['./app.component.css']\n})\nexport class AppComponent {\n  tasks: Task[] = [];\n  newTaskTitle: string = '';\n\n  addTask() {\n    if (this.newTaskTitle.trim() !== '') {\n      this.tasks.push({ title: this.newTaskTitle });\n      this.newTaskTitle = '';\n    }\n  }\n\n  deleteTask(index: number) {\n    this.tasks.splice(index, 1);\n  }\n}",
+      "filePath": "src/app/app.component.ts",
+      "language": "typescript",
+      "page": 3
+    },
+    {
+      "id": "a4e4fc15-37d1-4fde-81fb-3ef7a5934586",
+      "type": "paragraph",
+      "text": "Comprobación: El componente compila sin errores e incluye los métodos addTask y deleteTask.",
+      "page": 3
+    },
+    {
+      "id": "d1375dc0-7f15-4218-9233-3fd41fde377b",
+      "type": "heading",
+      "text": "Paso 4: Creación de la plantilla HTML",
+      "level": 2,
+      "page": 3
+    },
+    {
+      "id": "baf5e549-2dd3-4686-b3b0-5522cdbfbc2b",
+      "type": "paragraph",
+      "text": "Escribe el contenido completo de app.component.html con el formulario de entrada y la lista de elementos.",
+      "page": 3
+    },
+    {
+      "id": "645e0383-6fff-4317-b46e-57660fe7e795",
+      "type": "code",
+      "text": "<div style=\"max-width: 400px; margin: 40px auto; font-family: sans-serif;\">\n  <h2>Lista de Tareas</h2>\n  \n  <form (submit)=\"addTask(); $event.preventDefault()\">\n    <input \n      type=\"text\" \n      [(ngModel)]=\"newTaskTitle\" \n      name=\"newTaskTitle\" \n      placeholder=\"Nueva tarea...\" \n      required\n      style=\"padding: 8px; width: 70%; margin-right: 8px;\"\n    />\n    <button type=\"submit\" style=\"padding: 8px;\">Agregar</button>\n  </form>\n\n  <ul style=\"padding-left: 20px; margin-top: 20px;\">\n    <li *ngFor=\"let task of tasks; let i = index\" style=\"margin-bottom: 8px;\">\n      {{ task.title }}\n      <button (click)=\"deleteTask(i)\" style=\"margin-left: 10px;\">Eliminar</button>\n    </li>\n  </ul>\n</div>",
+      "filePath": "src/app/app.component.html",
+      "language": "html",
+      "page": 4
+    },
+    {
+      "id": "0c83a644-c78b-4f9a-8ae4-7693e736f24d",
+      "type": "paragraph",
+      "text": "Comprobación: La interfaz muestra el campo de texto, el botón de agregar y renderiza dinámicamente las tareas con opción de borrado.",
+      "page": 4
+    }
+  ],
+  "publication": {
+    "pageCount": 4,
+    "pageTitles": [
+      "Apartado 1: Creación del proyecto e implementación completa",
+      "Apartado 1: Creación del proyecto e implementación completa (continuación)",
+      "Apartado 1: Creación del proyecto e implementación completa (continuación)"
+    ],
+    "design": {
+      "accentColor": "#4361EE",
+      "fontStyle": "sans",
+      "density": "standard",
+      "coverStyle": "modern"
+    },
+    "course": "",
+    "career": "",
+    "teacher": "",
+    "institution": "",
+    "duration": "",
+    "imageSearches": [
+      {
+        "query": "Angular logo vector",
+        "chapter": 1
+      },
+      {
+        "query": "To do list icon",
+        "chapter": 1
+      },
+      {
+        "query": "Source code computer programming",
+        "chapter": 1
+      }
+    ]
+  }
+}

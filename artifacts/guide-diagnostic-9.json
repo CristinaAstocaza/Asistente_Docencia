@@ -1,0 +1,28 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "6. Ejemplo Resuelto: Aplicación de Tareas (Todo List)",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Para consolidar los conceptos de componentes y gestión de estado mediante el Hook useState, desarrollaremos una aplicación interactiva de tareas. Este ejercicio práctico permite comprender cómo fluyen los datos de manera unidireccional y cómo el cambio en el estado local actualiza la interfaz en tiempo real. La arquitectura emplea un campo de entrada controlado y una lista dinámica que reacciona a las acciones del usuario mediante eventos de formulario."
+    },
+    {
+      "type": "code",
+      "text": "import React, { useState } from 'react';\nexport default function TodoApp() {\n  const [tasks, setTasks] = useState([]);\n  const [input, setInput] = useState('');\n  const addTask = (e) => {\n    e.preventDefault();\n    if (!input.trim()) return;\n    setTasks([...tasks, { id: Date.now(), text: input }]);\n    setInput('');\n  };\n  return (\n    <div>\n      <form onSubmit={addTask}>\n        <input value={input} onChange={(e) => setInput(e.target.value)} />\n        <button type=\"submit\">Agregar</button>\n      </form>\n      <ul>{tasks.map(t => <li key={t.id}>{t.text}</li>)}</ul>\n    </div>\n  );\n}",
+      "language": "javascript"
+    },
+    {
+      "type": "diagram",
+      "text": "Flujo de ejecución del componente TodoApp",
+      "items": [
+        "El usuario escribe en el input actualizando el estado de texto.",
+        "Se presiona el botón para disparar el evento de envío.",
+        "Se genera un nuevo arreglo combinando el estado anterior con la tarea.",
+        "React renderiza nuevamente la lista actualizada en la interfaz."
+      ]
+    }
+  ]
+}

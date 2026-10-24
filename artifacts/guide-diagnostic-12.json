@@ -1,0 +1,36 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "8. Errores Frecuentes y Buenas Prácticas",
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "Durante el desarrollo de aplicaciones web utilizando React, es común que los estudiantes y desarrolladores cometan errores relacionados con la inmutabilidad del estado y el manejo del ciclo de vida de los componentes. Uno de los fallos más frecuentes consiste en modificar directamente la variable de estado en lugar de utilizar la función de actualización provista por el Hook useState. Esta práctica inadecuada impide que el motor de React detecte los cambios, lo que ocasiona que la interfaz de usuario no se vuelva a renderizar de forma sincronizada con los datos internos."
+    },
+    {
+      "type": "paragraph",
+      "text": "Otro error crítico ocurre al omitir las dependencias requeridas dentro del Hook useEffect, lo que frecuentemente desencadena bucles infinitos de peticiones de red o ejecuciones descontroladas de código. Para mantener un código limpio y mantenible, se recomienda estructurar los componentes de manera modular, separando la lógica de negocio de la presentación visual y aplicando convenciones de nomenclatura claras. A continuación, se muestra un ejemplo que contrasta la forma incorrecta de actualizar un arreglo en el estado frente a la forma correcta e inmutable."
+    },
+    {
+      "type": "code",
+      "text": "import { useState } from 'react';\n\nexport function ListaInvalida() {\n  const [items, setItems] = useState(['Elemento 1']);\n  \n  const agregarItemIncorrecto = () => {\n    items.push('Elemento 2'); // ERROR: Modificación directa\n    setItems(items);\n  };\n\n  const agregarItemCorrecto = () => {\n    setItems([...items, 'Elemento 2']); // CORRECTO: Inmutabilidad\n  };\n\n  return <div>Resultado</div>;\n}",
+      "language": "javascript"
+    },
+    {
+      "type": "paragraph",
+      "text": "El código anterior ilustra la importancia de utilizar el operador de propagación (...) para generar una nueva referencia de memoria en el arreglo. El resultado esperado de aplicar esta buena práctica es que el componente detecte el cambio de manera predecible, optimizando el rendimiento general de la aplicación y evitando comportamientos erráticos en la interfaz."
+    },
+    {
+      "type": "table",
+      "text": "Tabla comparativa de errores comunes y soluciones en React",
+      "rows": [
+        ["Error Común", "Impacto Técnico", "Solución Recomendada"],
+        ["Modificar el estado directamente", "La interfaz no se actualiza", "Usar siempre la función setter"],
+        ["Mutar arreglos con push() o pop()", "Pérdida de inmutabilidad", "Emplear métodos como map, filter o spread"],
+        ["Faltan dependencias en useEffect", "Bucles infinitos o datos obsoletos", "Incluir todas las variables externas usadas"]
+      ]
+    }
+  ]
+}

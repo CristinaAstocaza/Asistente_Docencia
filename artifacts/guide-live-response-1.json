@@ -1,0 +1,32 @@
+{
+  "title": "Guía de Práctica de Laboratorio: Técnica de Inyección Intramuscular para Estudiantes de Enfermería",
+  "guideType": "Guía de Laboratorio para Práctica Supervisada",
+  "objectives": [
+    "Comprender los fundamentos farmacocinéticos y anatómicos de la vía intramuscular.",
+    "Identificar y delimitar correctamente las zonas de punción anatómicas basándose en referencias óseas.",
+    "Demostrar el procedimiento completo de administración intramuscular aplicando normas de bioseguridad y técnica aséptica.",
+    "Evaluar el desempeño clínico del estudiante mediante rúbricas estandarizadas y resolución de casos prácticos."
+  ],
+  "chapters": [
+    {
+      "title": "Página 1: Fundamentos teóricos y farmacocinéticos de la vía intramuscular",
+      "brief": "Establece las bases teóricas de la absorción de fármacos a través del tejido muscular, ventajas, desventajas, contraindicaciones absolutas y relativas, así como el equipo y material necesario para la sesión de laboratorio. Esta página sienta el rigor científico inicial que sustenta la técnica que se aplicará en las siguientes fases."
+    },
+    {
+      "title": "Página 2: Anatomía de las zonas de punción y selección del sitio adecuado",
+      "brief": "Desarrolla detalladamente las cuatro zonas principales de inyección intramuscular (ventroglútea, dorsoglútea, vasto lateral y deltoides), explicando los puntos de referencia anatómicos y los límites de seguridad. Se conecta con la página anterior al traducir el fundamento farmacológico en una elección anatómica precisa para evitar lesiones nerviosas y vasculares."
+    },
+    {
+      "title": "Página 3: Procedimiento paso a paso y técnica de la Z-track",
+      "brief": "Detalla el procedimiento secuencial en el entorno simulado, desde la preparación del medicamento hasta el manejo de residuos punzocortantes, enfatizando la técnica de dispersión en Z ('Z-track') para prevenir la irritación tisular. Utiliza ejemplos prácticos de dosificación y conversión. Avanza desde la teoría pura hacia la ejecución motriz supervisada."
+    },
+    {
+      "title": "Página 4: Aplicación práctica y resolución de casos clínicos simulados",
+      "brief": "Presenta dos casos clínicos completos donde el estudiante debe seleccionar la aguja, el calibre, el sitio anatómico y calcular el volumen máximo permitido según las características del paciente simulado. Aplica directamente los conocimientos de las páginas 1, 2 y 3 en escenarios de toma de decisiones clínicas."
+    },
+    {
+      "title": "Página 5: Evaluación de competencias y rúbrica de desempeño",
+      "brief": "Cierra la guía proporcionando la rúbrica de evaluación objetiva estructurada (CHECKLIST) que el docente utilizará para calificar la práctica en el laboratorio, junto con los criterios de aprobación y las preguntas de autoevaluación reflexiva. Evalúa el dominio integral adquirido a lo largo de todo el itinerario progresivo."
+    }
+  ]
+}

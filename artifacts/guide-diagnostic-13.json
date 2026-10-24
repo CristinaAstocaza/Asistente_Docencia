@@ -1,0 +1,37 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "9. Ejercicios Propuestos y Criterios de Evaluación",
+      "level": 1
+    },
+    {
+      "type": "paragraph",
+      "text": "Para consolidar los conocimientos adquiridos a lo largo de esta guía práctica de desarrollo en React, se plantean dos ejercicios autónomos orientados a evaluar la capacidad de diseño modular, gestión de estados complejos y consumo de datos asíncronos. Los estudiantes deben aplicar los fundamentos de componentes funcionales, props, los Hooks useState y useEffect, así como las buenas prácticas de estructuración de código limpio abordadas en las secciones anteriores. Estos ejercicios simulan escenarios reales del desarrollo de software moderno y permiten verificar el dominio técnico antes de la calificación final."
+    },
+    {
+      "type": "heading",
+      "text": "Enunciado de los Ejercicios Prácticos",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "El primer ejercicio consiste en desarrollar un Catálogo de Productos con Filtro en Tiempo Real, el cual debe incluir un campo de búsqueda interactivo y un sistema de categorías que actualice la interfaz de manera instantánea utilizando el Hook useState. El segundo ejercicio requiere la implementación de un Tablero del Clima que consuma datos mediante fetch dentro de un Hook useEffect, mostrando la temperatura actual, humedad y manejo de estados de carga y error para garantizar una experiencia de usuario robusta y libre de fallos en tiempo de ejecución."
+    },
+    {
+      "type": "heading",
+      "text": "Rúbrica de Evaluación del Desempeño",
+      "level": 2
+    },
+    {
+      "type": "table",
+      "text": "Criterios de evaluación para la entrega final del proyecto de React.",
+      "rows": [
+        ["Criterio", "Nivel Excelente (4 pts)", "Nivel Satisfactorio (3 pts)", "Nivel Deficiente (1-2 pts)"],
+        ["Funcionalidad", "La aplicación cumple con todos los requisitos y opera sin errores.", "La aplicación opera pero presenta fallos menores en algún evento.", "La aplicación no compila o carece de funciones clave."],
+        ["Código Limpio", "Usa componentes modulares, nombres descriptivos y buenas prácticas.", "Estructura aceptable pero con componentes poco reutilizables.", "Código monolítico, desorganizado y sin convenciones."],
+        ["Manejo de Estado", "Uso correcto de useState y useEffect sin fugas de memoria.", "Uso básico de estado pero con re-renderizados innecesarios.", "Ausencia de manejo de estado reactivo."]
+      ]
+    }
+  ]
+}

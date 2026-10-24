@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: docente
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}
+      POSTGRES_DB: docente
+    volumes:
+      - docente_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docente -d docente"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 512m
+    cpus: 0.75
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env.deploy
+    environment:
+      DATABASE_DRIVER: postgres
+      DATABASE_URL: postgresql://docente:${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}@postgres:5432/docente
+      STORAGE_DRIVER: cloudinary
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      PORT: 4000
+    volumes:
+      - ./backend/storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 768m
+    cpus: 1.0
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://backend:4000
+    environment:
+      API_URL: http://backend:4000
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3010:3000"
+    depends_on:
+      - backend
+    mem_limit: 512m
+    cpus: 0.75
+volumes:
+  docente_pg:

@@ -1,0 +1,22 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "7. Manejo de Efectos Secundarios con useEffect",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "En React, los **efectos secundarios** abarcan operaciones como solicitudes a APIs o temporizadores que escapan al renderizado puro. El Hook **useEffect** permite sincronizar componentes con sistemas externos ejecutando código después de que el navegador pinta la interfaz. Su comportamiento se rige por el **arreglo de dependencias**: si está vacío `[]`, se ejecuta solo al montar el componente; si contiene variables, se dispara cada vez que alguna de ellas cambia. Esto evita bloqueos y gestiona correctamente el ciclo de vida."
+    },
+    {
+      "type": "code",
+      "text": "import { useState, useEffect } from 'react';\n\nexport function UserProfile({ userId }) {\n  const [user, setUser] = useState(null);\n  \n  useEffect(() => {\n    fetch(`https://api.example.com/users/${userId}`)\n      .then(res => res.json())\n      .then(data => setUser(data));\n  }, [userId]);\n\n  return <div>{user ? user.name : 'Cargando...'}</div>;\n}",
+      "language": "jsx"
+    },
+    {
+      "type": "paragraph",
+      "text": "En el ejemplo, `useEffect` ejecuta la petición `fetch` cada vez que el valor de `userId` cambia en el arreglo de dependencias. La función de limpieza opcional evita fugas de memoria al desmontar componentes."
+    }
+  ]
+}

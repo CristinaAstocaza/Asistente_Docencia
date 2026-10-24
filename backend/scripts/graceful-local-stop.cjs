@@ -1,0 +1,2 @@
+// Local maintenance only: invoke Nest shutdown hooks before replacing the process.
+(async()=>{const list=await(await fetch('http://127.0.0.1:9229/json/list')).json();const ws=new WebSocket(list[0].webSocketDebuggerUrl);ws.onopen=()=>ws.send(JSON.stringify({id:1,method:'Runtime.evaluate',params:{expression:"process.emit('SIGTERM')"}}));ws.onmessage=()=>{console.log('Cierre limpio solicitado');ws.close();};setTimeout(()=>process.exit(),5000);})().catch(e=>{console.error(e.message);process.exitCode=1;});

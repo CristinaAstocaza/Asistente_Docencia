@@ -1,0 +1,53 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Fundamentos Farmacocinéticos y Fisiológicos de la Vía Intramuscular",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "La **vía intramuscular (IM)** permite la administración de medicamentos directamente en el tejido muscular profundo, el cual cuenta con una abundante **irrigación sanguínea** comparado con el tejido subcutáneo. Esta vascularización es el factor determinante que explica por qué la **velocidad de absorción** de los fármacos es significativamente más rápida, permitiendo que el principio activo alcance la circulación sistémica en un tiempo estimado de 10 a 30 minutos. La absorción ocurre principalmente mediante difusión simple a través de los capilares sanguíneos que rodean las fibras musculares. Las soluciones acuosas se absorben con mayor rapidez, mientras que las preparaciones oleosas o las suspensiones de liberación prolongada experimentan una absorción retardada y sostenida debido a su menor solubilidad en el medio intersticial."
+    },
+    {
+      "type": "heading",
+      "text": "Ventajas, Desventajas y Contraindicaciones",
+      "level": 3
+    },
+    {
+      "type": "paragraph",
+      "text": "El uso de la vía intramuscular ofrece beneficios clínicos específicos, pero también conlleva riesgos que el profesional de enfermería debe evaluar rigurosamente antes de cada administración:"
+    },
+    {
+      "type": "list",
+      "text": "Consideraciones clínicas principales de la administración intramuscular:",
+      "items": [
+        "Ventajas: Permite administrar volúmenes mayores que la vía subcutánea (hasta 5 ml en músculos desarrollados), es útil cuando el paciente no tolera la vía oral y asegura una absorción más predecible que la vía tópica o enteral.",
+        "Desventajas: Es una técnica dolorosa, existe riesgo de lesión tisular local, abscesos estériles, fibrosis, y es imposible revertir la acción del fármaco una vez inyectado.",
+        "Contraindicaciones absolutas: Presencia de alteraciones graves de la coagulación (coagulopatías no tratadas), **shock circulatorio** (donde la vasoconstricción periférica altera la absorción) e infecciones en el sitio de punción.",
+        "Contraindicaciones relativas: Pacientes con masa muscular severamente disminuida (caquexia) o atrofia muscular avanzada."
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "Equipo y Material Necesario para el Laboratorio",
+      "level": 3
+    },
+    {
+      "type": "paragraph",
+      "text": "Para garantizar la seguridad del paciente y la esterilidad del procedimiento durante la sesión práctica, el estudiante debe preparar el siguiente material en la mesa de trabajo:"
+    },
+    {
+      "type": "list",
+      "text": "Materiales requeridos:",
+      "items": [
+        "Jeringas estériles de 3 ml a 5 ml (según el volumen del fármaco prescrito).",
+        "Agujas hipodérmicas de calibre 21G a 23G y longitud de 25 a 38 mm (adecuadas para atravesar el tejido subcutáneo y alcanzar el músculo).",
+        "Antiséptico de elección (alcohol isopropílico al 70% o clorhexidina al 2%).",
+        "Torundas de algodón o gasas estériles.",
+        "Guantes de procedimiento (no estériles, salvo indicación específica institucional).",
+        "Contenedor rígido para material punzocortante (desecho seguro de agujas sin reencapuchar)."
+      ]
+    }
+  ]
+}

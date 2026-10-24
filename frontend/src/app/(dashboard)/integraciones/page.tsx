@@ -1,0 +1,2 @@
+import IntegrationsWorkspace from "@/features/integrations/IntegrationsWorkspace";
+export default function Page() { return <IntegrationsWorkspace/>; }

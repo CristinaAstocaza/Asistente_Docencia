@@ -1,0 +1,33 @@
+process.env.STORAGE_DRIVER='local';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {AIService}=require('../dist/ai/ai.module');
+const {generationInput}=require('../dist/ai/contracts');
+const {renderPdf}=require('../dist/exports/render');
+const id='00000000-0000-4000-8000-000000000001';
+test('presentation generation reads an owned PDF reference and includes teacher instructions',async()=>{
+ let prompt='',bytesRead=false;
+ const bytes=await renderPdf([{text:'Ejemplo: comenzar con un caso y cerrar con una actividad.'}]);
+ const data={title:'Presentación',style:'moderno',slides:Array.from({length:3},(_,i)=>({title:`Diapositiva ${i+1}`,content:['Explicación del tema.'],layout:'bullets',notes:'Notas del docente.',visualSuggestion:'Ejemplo concreto.'}))};
+ const db={query:async(sql)=>sql.startsWith('SELECT id,name,type')?[{id,name:'ejemplo.pdf',type:'PDF',storage_key:id}]:[{id,data}]};
+ const service=new AIService(db,{generate:async(_system,text)=>{prompt=text;return {text:JSON.stringify(data),usage:{}};}},{get:async()=>{bytesRead=true;return bytes;}});
+ service.reserve=async()=>'';service.record=async()=>{};service.context=async()=>({context:'Sin fuentes',citations:[]});
+ await service.generate('teacher',generationInput.parse({kind:'presentation',topic:'Biología',parameters:{count:3,instructions:'Usa lenguaje sencillo'},referencePdfId:id}));
+ assert.ok(bytesRead);assert.match(prompt,/Usa lenguaje sencillo/);assert.match(prompt,/presentacion_de_ejemplo/);assert.match(prompt,/comenzar con un caso/);
+ const foreign=new AIService({query:async()=>[]},{},{get:async()=>{throw Error('Must not read');}});foreign.reserve=async()=>'';foreign.context=service.context;
+ await assert.rejects(()=>foreign.generate('other',generationInput.parse({kind:'presentation',topic:'Biología',referencePdfId:id})),/no está disponible/);
+});
+test('syllabus import extracts editable fields and custom sections without inventing missing data',async()=>{
+ const {syllabusImportKeys}=require('../dist/ai/syllabus-import');
+ const fields=Object.fromEntries(syllabusImportKeys.map(key=>[key,'']));Object.assign(fields,{course:'Comunicación',credits:'3',weeks:'18',bibliography:'Autor (2024). Referencia académica completa.\n'.repeat(1000)});
+ const imported={topic:'Comunicación',fields,sections:[{title:'Política institucional',content:'Presentar trabajos con sus fuentes.'}]};
+ const bytes=await renderPdf([{text:'Curso Comunicación. Créditos: 3. Política institucional: presentar fuentes.'}]);
+ const service=new AIService({query:async()=>[{id,name:'silabo.pdf',type:'PDF',storage_key:id}]},{generate:async(system,prompt)=>{assert.match(system,/sin completar ni inventar/);assert.match(prompt,/Curso Comunicación/);return {text:JSON.stringify(imported),usage:{}};}},{get:async()=>bytes});
+ service.reserve=async()=>'';service.record=async()=>{};
+ const result=await service.importSyllabus('teacher',id);assert.equal(result.fields.course,'Comunicación');assert.equal(result.fields.institution,'');assert.equal(result.sections[0].title,'Política institucional');assert.equal(result.fields.bibliography,fields.bibliography);
+ const input=generationInput.parse({kind:'syllabus',topic:result.topic,parameters:Object.fromEntries(Object.entries(result.fields).filter(([,value])=>value.length))});assert.equal(input.parameters.bibliography,fields.bibliography);
+ const {syllabusContract}=require('../dist/ai/syllabus');assert.ok(syllabusContract.shape.baseSections.safeParse(result.sections).success);
+ const {renderSyllabusPdf}=require('../dist/exports/syllabus-render');
+ const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');const pdf=await pdfjs.getDocument({data:new Uint8Array(await renderSyllabusPdf({title:'Sílabo',course:'Comunicación',credits:3,cycle:'Primero',description:'Comunicación efectiva',competency:'Comunicar',outcomes:['Explicar'],units:[],methodology:'Casos',evaluation:[],bibliography:[],baseSections:result.sections})),isEvalSupported:false}).promise;
+ let text='';for(let page=1;page<=pdf.numPages;page++)text+=(await (await pdf.getPage(page)).getTextContent()).items.map(item=>item.str).join(' ');assert.match(text,/Política institucional/);assert.match(text,/Presentar trabajos con sus fuentes/);await pdf.cleanup();
+});

@@ -1,0 +1,26 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "3. Estructura del Proyecto y Sintaxis JSX",
+      "level": 2,
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "Tras inicializar la aplicación con Vite, la estructura del proyecto se organiza de forma modular en el directorio raíz. La carpeta src es el núcleo donde reside la lógica de desarrollo, destacando el archivo main.jsx como el punto de entrada que monta el componente raíz App.jsx en el DOM del navegador. Para construir las interfaces, React emplea **JSX**, una extensión de sintaxis para JavaScript que permite describir la UI de manera declarativa combinando marcado y lógica. Entre las reglas fundamentales de JSX destacan la obligatoriedad de devolver un único elemento contenedor raíz —pudiendo utilizar fragmentos vacíos <>...</> si no se requiere un nodo HTML adicional—, la sustitución del atributo tradicional class por **className** para la asignación de clases CSS, y el uso de llaves {} para evaluar e interpolar expresiones de JavaScript directamente dentro del marcado de forma segura.",
+      "rows": []
+    },
+    {
+      "type": "code",
+      "text": "import React from 'react';\n\nexport function TarjetaCurso({ titulo }) {\n  const anio = 2024;\n  return (\n    <div className=\"tarjeta\">\n      <h2>{titulo}</h2>\n      <span>Año: {anio}</span>\n    </div>\n  );\n}",
+      "language": "jsx",
+      "rows": []
+    },
+    {
+      "type": "paragraph",
+      "text": "El bloque de código anterior demuestra la aplicación práctica de estas normas en un componente funcional moderno. La función TarjetaCurso recibe una propiedad y utiliza la sintaxis de **className** para aplicar estilos en el contenedor div, mientras que las llaves {} permiten inyectar dinámicamente el valor de la variable anio y la propiedad titulo directamente en el DOM virtual.",
+      "rows": []
+    }
+  ]
+}

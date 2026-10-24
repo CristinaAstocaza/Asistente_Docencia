@@ -1,0 +1,36 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "3. Estructura del Proyecto y Sintaxis JSX",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Una vez inicializado nuestro proyecto con Vite, es fundamental comprender la organización de los archivos y directorios que conforman la aplicación. La estructura típica separa los recursos estáticos, el punto de entrada de la aplicación y los componentes reutilizables. El directorio principal contiene archivos de configuración como vite.config.js y package.json, mientras que la carpeta src alberga toda la lógica de desarrollo. Dentro de src, el archivo main.jsx actúa como el puente que monta el componente raíz App.jsx en el DOM del navegador. Mantener esta organización modular facilita el mantenimiento y la escalabilidad del software a medida que la aplicación crece."
+    },
+    {
+      "type": "paragraph",
+      "text": "Paralelamente, React utiliza **JSX** (JavaScript XML), una extensión de sintaxis que permite escribir código similar a HTML directamente dentro de JavaScript. JSX no es entendido de forma nativa por los navegadores, por lo que herramientas como Vite y Babel lo transforman en llamadas a funciones de JavaScript puro (React.createElement). Entre las reglas fundamentales de JSX destacan la obligatoriedad de retornar un único elemento padre por componente (lo que comúnmente se resuelve utilizando fragmentos vacíos <>...</>), la utilización de camelCase para atributos como className en lugar de class, y la capacidad de interpolar expresiones de JavaScript utilizando llaves {}."
+    },
+    {
+      "type": "code",
+      "text": "import React from 'react';\n\nexport function TarjetaCurso({ titulo, descripcion }) {\n  const anioActual = new Date().getFullYear();\n  \n  return (\n    <div className=\"tarjeta-curso\">\n      <h2>{titulo}</h2>\n      <p>{descripcion}</p>\n      <span>Año académico: {anioActual}</span>\n    </div>\n  );\n}",
+      "language": "jsx"
+    },
+    {
+      "type": "paragraph",
+      "text": "El bloque de código anterior demuestra la aplicación práctica de JSX en un componente funcional. Se observa el uso de la etiqueta semántica div con el atributo className, la interpolación de variables mediante llaves como {titulo} y {anioActual}, y el retorno de una estructura clara. El resultado esperado en la interfaz es un contenedor HTML estructurado con la información dinámica proporcionada por las variables y propiedades del sistema."
+    },
+    {
+      "type": "diagram",
+      "text": "Flujo de transformación de JSX en el navegador",
+      "items": [
+        "Escritura de código JSX en archivos .jsx",
+        "Compilación y transpilación mediante Vite y Babel",
+        "Generación de llamadas a React.createElement",
+        "Renderizado del árbol de elementos en el DOM virtual y real"
+      ]
+    }
+  ]
+}

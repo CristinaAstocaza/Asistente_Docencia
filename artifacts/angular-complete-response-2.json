@@ -1,0 +1,90 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "Estructura de Directorios del Proyecto",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "A continuación se muestra el árbol de carpetas y archivos que componen la aplicación Angular standalone para la gestión de tareas."
+    },
+    {
+      "type": "code",
+      "text": "mi-app-tareas/\n├── src/\n│   ├── app/\n│   │   ├── task.model.ts\n│   │   ├── app.component.ts\n│   │   └── app.component.html\n│   ├── main.ts\n│   └── index.html\n└── package.json",
+      "language": "text"
+    },
+    {
+      "type": "heading",
+      "text": "Paso 1: Inicialización del proyecto",
+      "level": 2
+    },
+    {
+      "type": "list",
+      "text": "Instrucciones para crear y levantar el entorno de desarrollo:",
+      "items": [
+        "1. Ejecuta el comando en tu terminal para crear el proyecto: npx @angular/cli new mi-app-tareas --routing=false --style=css",
+        "2. Entra a la carpeta del proyecto creado: cd mi-app-tareas",
+        "3. Inicia el servidor de desarrollo local: ng serve",
+        "4. Abre tu navegador en la dirección http://localhost:4200 para comprobar que Angular compila correctamente."
+      ]
+    },
+    {
+      "type": "heading",
+      "text": "Paso 2: Creación del modelo de datos",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Crea el archivo task.model.ts para definir la estructura TypeScript de cada tarea."
+    },
+    {
+      "type": "code",
+      "text": "export interface Task {\n  title: string;\n}",
+      "filePath": "src/app/task.model.ts",
+      "language": "typescript"
+    },
+    {
+      "type": "paragraph",
+      "text": "Comprobación: El modelo define correctamente una interfaz con la propiedad title de tipo string."
+    },
+    {
+      "type": "heading",
+      "text": "Paso 3: Implementación del componente principal",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Configura app.component.ts utilizando componentes standalone, FormsModule y la lógica para añadir y eliminar tareas."
+    },
+    {
+      "type": "code",
+      "text": "import { Component } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { Task } from './task.model';\n\n@Component({\n  selector: 'app-root',\n  standalone: true,\n  imports: [CommonModule, FormsModule],\n  templateUrl: './app.component.html',\n  styleUrls: ['./app.component.css']\n})\nexport class AppComponent {\n  tasks: Task[] = [];\n  newTaskTitle: string = '';\n\n  addTask() {\n    if (this.newTaskTitle.trim() !== '') {\n      this.tasks.push({ title: this.newTaskTitle });\n      this.newTaskTitle = '';\n    }\n  }\n\n  deleteTask(index: number) {\n    this.tasks.splice(index, 1);\n  }\n}",
+      "filePath": "src/app/app.component.ts",
+      "language": "typescript"
+    },
+    {
+      "type": "paragraph",
+      "text": "Comprobación: El componente compila sin errores e incluye los métodos addTask y deleteTask."
+    },
+    {
+      "type": "heading",
+      "text": "Paso 4: Creación de la plantilla HTML",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Escribe el contenido completo de app.component.html con el formulario de entrada y la lista de elementos."
+    },
+    {
+      "type": "code",
+      "text": "<div style=\"max-width: 400px; margin: 40px auto; font-family: sans-serif;\">\n  <h2>Lista de Tareas</h2>\n  \n  <form (submit)=\"addTask(); $event.preventDefault()\">\n    <input \n      type=\"text\" \n      [(ngModel)]=\"newTaskTitle\" \n      name=\"newTaskTitle\" \n      placeholder=\"Nueva tarea...\" \n      required\n      style=\"padding: 8px; width: 70%; margin-right: 8px;\"\n    />\n    <button type=\"submit\" style=\"padding: 8px;\">Agregar</button>\n  </form>\n\n  <ul style=\"padding-left: 20px; margin-top: 20px;\">\n    <li *ngFor=\"let task of tasks; let i = index\" style=\"margin-bottom: 8px;\">\n      {{ task.title }}\n      <button (click)=\"deleteTask(i)\" style=\"margin-left: 10px;\">Eliminar</button>\n    </li>\n  </ul>\n</div>",
+      "filePath": "src/app/app.component.html",
+      "language": "html"
+    },
+    {
+      "type": "paragraph",
+      "text": "Comprobación: La interfaz muestra el campo de texto, el botón de agregar y renderiza dinámicamente las tareas con opción de borrado."
+    }
+  ]
+}

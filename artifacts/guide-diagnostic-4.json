@@ -1,0 +1,22 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "3. Estructura del Proyecto y Sintaxis JSX",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Tras inicializar el proyecto con Vite, la carpeta src centraliza la lógica de desarrollo. El archivo main.jsx monta el componente raíz App.jsx en el DOM. Paralelamente, **JSX** permite integrar sintaxis similar a HTML en JavaScript. Sus reglas clave exigen un único elemento raíz (o fragmentos <>...</>), usar **className** en vez de class, e interpolar expresiones con llaves {}."
+    },
+    {
+      "type": "code",
+      "text": "import React from 'react';\n\nexport function TarjetaCurso({ titulo }) {\n  const anio = 2024;\n  return (\n    <div className=\"tarjeta\">\n      <h2>{titulo}</h2>\n      <span>Año: {anio}</span>\n    </div>\n  );\n}",
+      "language": "jsx"
+    },
+    {
+      "type": "paragraph",
+      "text": "El código anterior ilustra un componente que utiliza **className** para los estilos y llaves {} para renderizar variables dinámicas como el título y el año actual de forma limpia y eficiente."
+    }
+  ]
+}

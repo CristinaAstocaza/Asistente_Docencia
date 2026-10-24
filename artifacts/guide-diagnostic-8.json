@@ -1,0 +1,36 @@
+{
+  "blocks": [
+    {
+      "type": "heading",
+      "text": "6. Ejemplo Resuelto: Aplicación de Tareas (Todo List)",
+      "level": 2
+    },
+    {
+      "type": "paragraph",
+      "text": "Para consolidar los conceptos de componentes, paso de propiedades y gestión de estado mediante el Hook useState, desarrollaremos una aplicación interactiva completa de gestión de tareas (Todo List). Este ejercicio práctico permite comprender cómo fluyen los datos en una aplicación React de manera unidireccional y cómo el cambio en el estado local actualiza automáticamente la interfaz de usuario en tiempo real."
+    },
+    {
+      "type": "paragraph",
+      "text": "La arquitectura del ejercicio se divide en dos partes fundamentales: un componente de formulario para capturar nuevas entradas de texto y un contenedor principal que administra la lista completa de elementos pendientes. A continuación, se presenta el código ejecutable completo que integra estas piezas en un único archivo modular para su análisis y ejecución directa en el entorno de desarrollo."
+    },
+    {
+      "type": "code",
+      "text": "import React, { useState } from 'react';\n\nexport default function TodoApp() {\n  const [tasks, setTasks] = useState([]);\n  const [input, setInput] = useState('');\n\n  const addTask = (e) => {\n    e.preventDefault();\n    if (!input.trim()) return;\n    setTasks([...tasks, { id: Date.now(), text: input }]);\n    setInput('');\n  };\n\n  return (\n    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>\n      <h2>Gestor de Tareas</h2>\n      <form onSubmit={addTask}>\n        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder=\"Nueva tarea...\" />\n        <button type=\"submit\">Agregar</button>\n      </form>\n      <ul>\n        {tasks.map(t => <li key={t.id}>{t.text}</li>)}\n      </ul>\n    </div>\n  );\n}",
+      "language": "javascript"
+    },
+    {
+      "type": "paragraph",
+      "text": "El código anterior utiliza dos instancias independientes de useState: una para almacenar el texto actual que el usuario escribe en el campo de entrada y otra para mantener la colección inmutable de tareas. La función addTask intercepta el evento de envío del formulario, valida que el contenido no esté vacío y utiliza el operador de propagación (...) para añadir el nuevo objeto al arreglo existente sin mutar directamente el estado previo."
+    },
+    {
+      "type": "diagram",
+      "text": "Flujo de ejecución del componente TodoApp",
+      "items": [
+        "El usuario escribe en el input y se actualiza el estado 'input' mediante onChange.",
+        "Se presiona el botón 'Agregar' disparando el evento onSubmit del formulario.",
+        "La función addTask valida el texto y genera un nuevo arreglo combinando el estado anterior con la nueva tarea.",
+        "React detecta el cambio de estado en 'tasks' y renderiza nuevamente la lista en la interfaz."
+      ]
+    }
+  ]
+}
