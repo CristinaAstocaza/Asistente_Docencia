@@ -16,4 +16,5 @@ COPY --chown=node:node src/database/schema.sql ./src/database/schema.sql
 COPY --chown=node:node assets ./assets
 USER node
 EXPOSE 4000
-CMD ["node","dist/main.js"]
+# Creates or updates the tables (idempotent) before starting, so a fresh database works on first deploy.
+CMD ["sh","-c","node dist/database/migrate.js && exec node dist/main.js"]

@@ -1,0 +1,55 @@
+# Praxis on Dokploy (Docker Compose service).
+# - Variables: Dokploy → Environment tab (it writes them to .env next to this file).
+# - Domain: Dokploy → Domains tab → service "frontend", port 3000, HTTPS with Let's Encrypt.
+#   Traefik (installed by Dokploy) terminates HTTPS; no host ports are published here.
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: docente
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}
+      POSTGRES_DB: docente
+    volumes:
+      - praxis_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docente -d docente"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    mem_limit: 512m
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_DRIVER: postgres
+      DATABASE_URL: postgresql://docente:${POSTGRES_PASSWORD}@postgres:5432/docente
+      STORAGE_DRIVER: cloudinary
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      PORT: 4000
+      # Traefik → Next.js → API: Next.js keeps the visitor IP that Traefik sends in X-Forwarded-For.
+      TRUST_PROXY: 1
+    volumes:
+      - praxis_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 1g
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://backend:4000
+    environment:
+      API_URL: http://backend:4000
+    restart: unless-stopped
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    mem_limit: 768m
+volumes:
+  praxis_pg:
+  praxis_storage:
