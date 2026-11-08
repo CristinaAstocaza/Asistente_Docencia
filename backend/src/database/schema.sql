@@ -118,3 +118,5 @@ CREATE TABLE IF NOT EXISTS password_reset_codes (
  code_hash text NOT NULL, attempts integer NOT NULL DEFAULT 0,
  expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
 );
+-- A deactivated account cannot sign in; its materials are kept.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS disabled boolean NOT NULL DEFAULT false;

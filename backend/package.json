@@ -4,7 +4,8 @@
   "private": true,
   "overrides": {
     "image-size": "2.0.4",
-    "argparse": "3.0.2"
+    "argparse": "3.0.2",
+    "multer": "$multer"
   },
   "scripts": {
     "dev": "node --watch --watch-path=src --require ts-node/register src/main.ts",
@@ -29,7 +30,7 @@
     "helmet": "^8.0.0",
     "jszip": "^3.10.1",
     "mammoth": "^1.9.0",
-    "multer": "^2.0.2",
+    "multer": "^2.5.0",
     "pdfjs-dist": "^6.4.299",
     "pdfkit": "^0.17.0",
     "pg": "^8.13.0",

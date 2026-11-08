@@ -1,4 +1,4 @@
-import { BadRequestException, Body, CanActivate, ConflictException, Controller, Delete, ExecutionContext, ForbiddenException, Get, Global, Injectable, Module, NotFoundException, Param, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, CanActivate, Patch, ConflictException, Controller, Delete, ExecutionContext, ForbiddenException, Get, Global, Injectable, Module, NotFoundException, Param, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import type { Request, Response } from 'express';
@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Database } from '../database/database';
 import { parse, text } from '../common/validation';
 import { settings } from '../config';
+import { ADMIN_EMAIL } from './admin-seed';
 const scrypt = promisify(scryptCallback);
 export const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
 export async function hashPassword(password: string) {
@@ -39,7 +40,7 @@ export class AuthGuard implements CanActivate {
     const token = req.cookies?.docente_access;
     if (!token) throw new UnauthorizedException('Inicia sesión para continuar.');
     const [user] = await this.db.query(`SELECT u.id,u.name,u.email,u.institution,u.academic_context,u.is_admin FROM sessions s JOIN users u ON u.id=s.user_id
-   WHERE s.access_hash=$1 AND s.access_expires_at>now() AND s.expires_at>now()`, [hashToken(token)]);
+   WHERE s.access_hash=$1 AND s.access_expires_at>now() AND s.expires_at>now() AND u.disabled=false`, [hashToken(token)]);
     if (!user) throw new UnauthorizedException('Tu sesión ha caducado.');
     req.user = user; return true;
   }
@@ -64,17 +65,20 @@ export class AuthController {
   // Accounts are created only by an administrator (POST /auth/users); there is no public sign-up.
   @Post('login') async login(@Body() input: unknown, @Res({ passthrough: true }) res: Response) {
     const data = parse(credentials, input);
-    const [user] = await this.db.query('SELECT * FROM users WHERE LOWER(email)=$1 OR LOWER(name)=$1', [data.email]);
+    // The exact email always wins; a username is accepted only when it identifies a single account.
+    let [user] = await this.db.query('SELECT * FROM users WHERE LOWER(email)=$1', [data.email]);
+    if (!user) { const byName = await this.db.query('SELECT * FROM users WHERE LOWER(name)=$1 LIMIT 2', [data.email]); if (byName.length === 1) user = byName[0]; }
     // Use a valid dummy hash to avoid disclosing existing accounts through response timing.
     const valid = await verifyPassword(data.password, user?.password_hash || '00000000000000000000000000000000:' + '00'.repeat(64));
     if (!user || !valid) throw new UnauthorizedException('Usuario o contraseña incorrectos.');
+    if (user.disabled) throw new ForbiddenException('Tu cuenta está desactivada. Comunícate con el administrador.');
     await this.auth.issue(user.id, res); return { id: user.id, name: user.name, email: user.email, institution: user.institution, is_admin: user.is_admin };
   }
   @Post('refresh') async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     if (!req.cookies?.docente_refresh) throw new UnauthorizedException();
     const access = randomBytes(32).toString('base64url'), refresh = randomBytes(32).toString('base64url');
     const [session] = await this.db.query(`UPDATE sessions SET access_hash=$1,refresh_hash=$2,access_expires_at=now()+interval '15 minutes'
-    WHERE refresh_hash=$3 AND expires_at>now() RETURNING id`, [hashToken(access), hashToken(refresh), hashToken(req.cookies.docente_refresh)]);
+    WHERE refresh_hash=$3 AND expires_at>now() AND user_id IN (SELECT id FROM users WHERE disabled=false) RETURNING id`, [hashToken(access), hashToken(refresh), hashToken(req.cookies.docente_refresh)]);
     if (!session) throw new UnauthorizedException('Inicia sesión nuevamente.');
     this.auth.cookies(res, access, refresh); return { ok: true };
   }
@@ -96,19 +100,36 @@ export class AuthController {
   /** Admin: list all users */
   @Get('users') @UseGuards(AuthGuard) async listUsers(@Req() req: UserRequest) {
     if (!req.user.is_admin) throw new ForbiddenException('Solo administradores pueden gestionar usuarios.');
-    return this.db.query(`SELECT u.id,u.name,u.email,u.institution,u.is_admin,u.created_at,
+    return this.db.query(`SELECT u.id,u.name,u.email,u.institution,u.is_admin,u.disabled,u.created_at,LOWER(u.email)=$1 AS protected,
       (SELECT count(*)::int FROM generated_content g WHERE g.user_id=u.id) AS materials,
       (SELECT count(*)::int FROM documents d WHERE d.user_id=u.id) AS sources,
       (SELECT max(s.created_at) FROM sessions s WHERE s.user_id=u.id) AS last_login
-      FROM users u ORDER BY u.is_admin DESC, u.created_at ASC`);
+      FROM users u ORDER BY u.is_admin DESC, u.created_at ASC`, [ADMIN_EMAIL]);
   }
   /** Admin: create a new user */
   @Post('users') @UseGuards(AuthGuard) async createUser(@Req() req: UserRequest, @Body() input: unknown) {
     if (!req.user.is_admin) throw new ForbiddenException('Solo administradores pueden crear usuarios.');
     const data = parse(newUser, input), id = randomUUID();
+    // Usernames also sign in, so they must not repeat or look like another account's email.
+    const [clash] = await this.db.query('SELECT 1 FROM users WHERE LOWER(name)=LOWER($1) OR LOWER(email)=LOWER($1) OR LOWER(name)=$2', [data.name, data.email]);
+    if (clash) throw new ConflictException('Ese nombre de usuario ya está en uso. Elige otro.');
     try { await this.db.query('INSERT INTO users(id,email,password_hash,name,institution,is_admin) VALUES($1,$2,$3,$4,$5,$6)', [id, data.email, await hashPassword(data.password), data.name, data.institution, data.is_admin]); }
     catch (error: any) { if (error.code === '23505') throw new ConflictException('Este correo ya está registrado.'); throw error; }
-    return { id, name: data.name, email: data.email, institution: data.institution, is_admin: data.is_admin, created_at: new Date().toISOString(), materials: 0, sources: 0, last_login: null };
+    return { id, name: data.name, email: data.email, institution: data.institution, is_admin: data.is_admin, disabled: false, protected: false, created_at: new Date().toISOString(), materials: 0, sources: 0, last_login: null };
+  }
+  /** Admin: activate/deactivate an account or change its role. The main admin and your own account cannot be changed. */
+  @Patch('users/:id') @UseGuards(AuthGuard) async updateUser(@Req() req: UserRequest, @Param('id') id: string, @Body() input: unknown) {
+    if (!req.user.is_admin) throw new ForbiddenException('Solo administradores pueden gestionar usuarios.');
+    if (!z.uuid().safeParse(id).success) throw new NotFoundException('Usuario no encontrado.');
+    if (id === req.user.id) throw new ForbiddenException('No puedes cambiar tu propia cuenta desde aquí.');
+    const data = parse(z.object({ disabled: z.boolean().optional(), is_admin: z.boolean().optional() }).refine(v => v.disabled !== undefined || v.is_admin !== undefined, 'Indica qué cambiar.'), input);
+    const [target] = await this.db.query('SELECT id,email FROM users WHERE id=$1', [id]);
+    if (!target) throw new NotFoundException('Usuario no encontrado.');
+    if (String(target.email).toLowerCase() === ADMIN_EMAIL) throw new ForbiddenException('La cuenta administradora principal no se puede modificar.');
+    const [user] = await this.db.query(`UPDATE users SET disabled=COALESCE($2,disabled),is_admin=COALESCE($3,is_admin) WHERE id=$1 RETURNING id,is_admin,disabled`, [id, data.disabled ?? null, data.is_admin ?? null]);
+    // Losing access or the admin role takes effect immediately: open sessions are closed.
+    if (data.disabled === true || data.is_admin === false) await this.db.query('DELETE FROM sessions WHERE user_id=$1', [id]);
+    return user;
   }
   /** Admin: delete a user (cannot delete yourself) */
   @Delete('users/:id') @UseGuards(AuthGuard) async deleteUser(@Req() req: UserRequest, @Param('id') id: string) {

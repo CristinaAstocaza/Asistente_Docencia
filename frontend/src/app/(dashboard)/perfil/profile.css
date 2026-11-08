@@ -76,3 +76,6 @@
 .profile-admin-toggle strong{display:block;font-size:13.5px}
 .profile-admin-toggle small{display:block;font-size:12px;color:var(--color-text-secondary,#6B7280);line-height:1.45}
 .profile-admin-toggle.on{border-color:#C8102E;background:#FFF5F6}
+.profile-user-actions{display:flex;gap:4px}
+.profile-badge.off{background:#FEE2E2;color:#B91C1C}
+.profile-users li:has(.profile-badge.off){opacity:.75}

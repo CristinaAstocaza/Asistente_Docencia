@@ -6,13 +6,14 @@ import { useTeacher } from "@/components/AuthProvider";
 import { notify } from "@/components/feedback";
 import {
   User, Shield, Plus, Trash2, Mail, Lock, Eye, EyeOff, Building2, CheckCircle2,
-  KeyRound, Users, Search, AlertTriangle, LogOut, FileText, FolderOpen, X,
+  KeyRound, Users, Search, AlertTriangle, LogOut, FileText, FolderOpen, X, Ban, CircleCheck, ShieldOff,
 } from "lucide-react";
 import "./profile.css";
 
 interface UserRow {
   id: string; name: string; email: string; institution: string; is_admin: boolean;
   created_at: string; materials: number; sources: number; last_login: string | null;
+  disabled?: boolean; protected?: boolean;
 }
 type Tab = "cuenta" | "seguridad" | "usuarios";
 
@@ -120,6 +121,7 @@ function UsersPanel({ me }: { me: string }) {
   const [form, setForm] = useState({ name: "", institution: "", email: "", password: "", is_admin: false });
   const [showPass, setShowPass] = useState(false), [creating, setCreating] = useState(false), [createError, setCreateError] = useState(""), [openForm, setOpenForm] = useState(false);
   const [pending, setPending] = useState<UserRow | null>(null), [deleting, setDeleting] = useState(false);
+  const [change, setChange] = useState<{ user: UserRow; patch: { disabled?: boolean; is_admin?: boolean } } | null>(null), [changing, setChanging] = useState(false);
 
   useEffect(() => {
     api<UserRow[]>("/auth/users").then(setUsers).catch(e => setLoadError(errorMessage(e))).finally(() => setLoading(false));
@@ -135,6 +137,16 @@ function UsersPanel({ me }: { me: string }) {
       notify(`Cuenta ${created.is_admin ? "de administrador " : ""}creada para ${created.name}. Comparte su correo y contraseña.`);
     } catch (err) { setCreateError(errorMessage(err)); }
     finally { setCreating(false); }
+  }
+  async function applyChange() {
+    if (!change) return; setChanging(true);
+    try {
+      const r = await api<{ id: string; is_admin: boolean; disabled: boolean }>(`/auth/users/${change.user.id}`, { method: "PATCH", body: JSON.stringify(change.patch) });
+      setUsers(prev => prev.map(u => u.id === r.id ? { ...u, is_admin: r.is_admin, disabled: r.disabled } : u));
+      notify(change.patch.disabled === true ? `Se desactivó la cuenta de ${change.user.name}.` : change.patch.disabled === false ? `Se activó la cuenta de ${change.user.name}.` : change.patch.is_admin ? `${change.user.name} ahora es administrador.` : `${change.user.name} ya no es administrador.`);
+      setChange(null);
+    } catch (err) { notify(errorMessage(err), "error"); }
+    finally { setChanging(false); }
   }
   async function remove() {
     if (!pending) return; setDeleting(true);
@@ -174,7 +186,7 @@ function UsersPanel({ me }: { me: string }) {
         <label className={`profile-admin-toggle${form.is_admin ? " on" : ""}`}>
           <input type="checkbox" checked={form.is_admin} onChange={e => setForm(f => ({ ...f, is_admin: e.target.checked }))} />
           <Shield size={16} aria-hidden />
-          <span><strong>Cuenta de administrador</strong><small>Podrá crear y eliminar cuentas de docentes. Las cuentas de administrador no se pueden eliminar desde el sistema.</small></span>
+          <span><strong>Cuenta de administrador</strong><small>Podrá crear, desactivar y eliminar cuentas de docentes. Puedes quitarle el rol más adelante.</small></span>
         </label>
         <p className="muted">El usuario podrá cambiar esta contraseña desde su perfil (pestaña Seguridad).</p>
         <div className="toolbar"><button className="btn primary" disabled={creating}>{creating ? "Creando…" : "Crear cuenta"}</button><button type="button" className="btn" onClick={() => { setOpenForm(false); setCreateError(""); }}>Cancelar</button></div>
@@ -193,7 +205,7 @@ function UsersPanel({ me }: { me: string }) {
         {filtered.map(u => <li key={u.id} className={u.id === me ? "is-me" : ""}>
           <span className={`profile-avatar small${u.is_admin ? " admin" : ""}`}>{initials(u.name)}</span>
           <div className="profile-user-main">
-            <strong>{u.name}{u.is_admin && <em className="profile-badge admin"><Shield size={11} /> Administrador</em>}{u.id === me && <em className="profile-badge">Tú</em>}</strong>
+            <strong>{u.name}{u.is_admin && <em className="profile-badge admin"><Shield size={11} /> Administrador</em>}{u.id === me && <em className="profile-badge">Tú</em>}{u.protected && <em className="profile-badge">Principal</em>}{u.disabled && <em className="profile-badge off">Desactivada</em>}</strong>
             <small>{u.email}{u.institution ? ` · ${u.institution}` : ""}</small>
           </div>
           <div className="profile-user-meta">
@@ -202,12 +214,29 @@ function UsersPanel({ me }: { me: string }) {
             <span title="Último ingreso">Último ingreso: {date(u.last_login)}</span>
             <span title="Fecha de creación">Creada: {date(u.created_at)}</span>
           </div>
-          {u.is_admin ? <span className="profile-user-lock" title="Las cuentas de administrador no se pueden eliminar"><Lock size={14} /></span>
-            : <button className="btn icon profile-user-delete" onClick={() => setPending(u)} aria-label={`Eliminar la cuenta de ${u.name}`} title="Eliminar cuenta"><Trash2 size={15} /></button>}
+          {u.id === me || u.protected ? <span className="profile-user-lock" title={u.protected ? "Cuenta administradora principal: no se puede modificar" : "Tu propia cuenta"}><Lock size={14} /></span>
+            : <div className="profile-user-actions">
+              <button className="btn icon" onClick={() => setChange({ user: u, patch: { disabled: !u.disabled } })} aria-label={`${u.disabled ? "Activar" : "Desactivar"} la cuenta de ${u.name}`} title={u.disabled ? "Activar cuenta" : "Desactivar cuenta"}>{u.disabled ? <CircleCheck size={15} /> : <Ban size={15} />}</button>
+              <button className="btn icon" onClick={() => setChange({ user: u, patch: { is_admin: !u.is_admin } })} aria-label={`${u.is_admin ? "Quitar rol de administrador a" : "Hacer administrador a"} ${u.name}`} title={u.is_admin ? "Quitar rol de administrador" : "Hacer administrador"}>{u.is_admin ? <ShieldOff size={15} /> : <Shield size={15} />}</button>
+              {!u.is_admin && <button className="btn icon profile-user-delete" onClick={() => setPending(u)} aria-label={`Eliminar la cuenta de ${u.name}`} title="Eliminar cuenta"><Trash2 size={15} /></button>}
+            </div>}
         </li>)}
       </ul>
     </section>
     {pending && <DeleteDialog user={pending} busy={deleting} onCancel={() => setPending(null)} onConfirm={remove} />}
+    {change && <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget && !changing) setChange(null); }}>
+      <section className="modal card profile-delete" role="alertdialog" aria-modal="true" aria-labelledby="change-title">
+        <header><span className="profile-delete-icon" style={{ background: "#EEF2FF", color: "#4361EE" }}>{change.patch.disabled === true ? <Ban size={22} /> : change.patch.disabled === false ? <CircleCheck size={22} /> : change.patch.is_admin ? <Shield size={22} /> : <ShieldOff size={22} />}</span>
+          <h2 id="change-title">{change.patch.disabled === true ? "¿Desactivar esta cuenta?" : change.patch.disabled === false ? "¿Activar esta cuenta?" : change.patch.is_admin ? "¿Hacer administrador?" : "¿Quitar el rol de administrador?"}</h2>
+          <button className="btn icon" aria-label="Cancelar" onClick={() => setChange(null)} disabled={changing}><X size={18} /></button></header>
+        <div className="profile-delete-user"><span className="profile-avatar small">{initials(change.user.name)}</span><div><strong>{change.user.name}</strong><small>{change.user.email}</small></div></div>
+        <p className="muted">{change.patch.disabled === true ? "No podrá iniciar sesión y sus sesiones abiertas se cerrarán ahora. Sus materiales y fuentes se conservan; puedes volver a activarla cuando quieras."
+          : change.patch.disabled === false ? "Podrá volver a iniciar sesión con su contraseña actual."
+          : change.patch.is_admin ? "Podrá crear, desactivar y eliminar cuentas de docentes, y cambiar roles de otros administradores (excepto la cuenta principal)."
+          : "Seguirá siendo docente con sus materiales, pero perderá la gestión de usuarios. Sus sesiones abiertas se cerrarán ahora."}</p>
+        <div className="toolbar profile-delete-actions"><button className="btn" onClick={() => setChange(null)} disabled={changing}>Cancelar</button><button className={`btn ${change.patch.disabled === true || change.patch.is_admin === false ? "danger" : "primary"}`} onClick={applyChange} disabled={changing}>{changing ? "Aplicando…" : "Confirmar"}</button></div>
+      </section>
+    </div>}
   </>;
 }
 

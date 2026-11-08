@@ -208,3 +208,28 @@ test('the admin account is never created with a password written in the code',as
  try{assert.equal(await ensureAdmin(fake),'skipped');assert.equal(inserts.length,0);}finally{process.env.ADMIN_PASSWORD=saved;}
  assert.equal(await ensureAdmin(fake),'created');assert.equal(inserts.length,1);assert.notEqual(inserts[0][2],saved,'only the hash is stored');
 });
+test('admins can deactivate accounts and change roles; the main admin and own account are protected',async()=>{
+ const admin={cookies:''};await call(admin,'/auth/login',{email:'DocenteLino2026',password:ADMIN.password});
+ const teacher=await (await call(admin,'/auth/users',{name:'Desactivable',email:'off@example.test',password:'password123'})).json();
+ assert.equal((await call(admin,'/auth/users',{name:'desactivable',email:'otro@example.test',password:'password123'})).status,409,'usernames are unique');
+ assert.equal((await call(admin,'/auth/users',{name:'off@example.test',email:'otro2@example.test',password:'password123'})).status,409,'a username cannot be another email');
+ const session={cookies:''};await call(session,'/auth/login',{email:'off@example.test',password:'password123'});
+ assert.equal((await call(admin,'/auth/users/'+teacher.id,{disabled:true},'PATCH')).status,200);
+ assert.equal((await call(session,'/auth/me',undefined,'GET')).status,401,'open sessions end immediately');
+ assert.equal((await call({cookies:''},'/auth/login',{email:'off@example.test',password:'password123'})).status,403);
+ assert.equal((await call({cookies:''},'/auth/login',{email:'off@example.test',password:'wrong-pass'})).status,401,'no hint without the right password');
+ await call(admin,'/auth/users/'+teacher.id,{disabled:false},'PATCH');assert.equal((await call({cookies:''},'/auth/login',{email:'off@example.test',password:'password123'})).status,201);
+ // Promote, then demote: the former admin loses access to user management at once.
+ const promoted={cookies:''};await call(admin,'/auth/users/'+teacher.id,{is_admin:true},'PATCH');await call(promoted,'/auth/login',{email:'off@example.test',password:'password123'});
+ assert.equal((await call(promoted,'/auth/users',undefined,'GET')).status,200);
+ await call(admin,'/auth/users/'+teacher.id,{is_admin:false},'PATCH');assert.equal((await call(promoted,'/auth/users',undefined,'GET')).status,401);
+ const me=(await call(admin,'/auth/me',undefined,'GET'));const self=await me.json();
+ assert.equal((await call(admin,'/auth/users/'+self.id,{disabled:true},'PATCH')).status,403,'not yourself');
+ const list=await (await call(admin,'/auth/users',undefined,'GET')).json();const main=list.find(u=>u.protected);assert.ok(main&&main.is_admin);
+ const other={cookies:''};await call(admin,'/auth/users/'+teacher.id,{is_admin:true},'PATCH');await call(other,'/auth/login',{email:'off@example.test',password:'password123'});
+ assert.equal((await call(other,'/auth/users/'+main.id,{disabled:true},'PATCH')).status,403,'the main admin cannot be disabled by another admin');
+});
+test('only failed sign-ins are rate limited',async()=>{
+ const codes=[];for(let i=0;i<22;i++)codes.push((await call({cookies:''},'/auth/login',{email:'nadie-rl@example.test',password:'wrong-pass'})).status);
+ assert.equal(codes[0],401);assert.equal(codes.at(-1),429,'brute force is stopped');
+});

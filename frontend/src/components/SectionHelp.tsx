@@ -26,7 +26,8 @@ const HELP: Record<string, Help> = {
   "/perfil": { title: "Mi perfil", intro: "Tus datos, tu seguridad y, si eres administrador, la gestión de cuentas.", cards: [
     { icon: ShieldCheck, title: "Cambia tu contraseña", text: "En la pestaña «Seguridad» escribe tu contraseña actual y la nueva. Se cerrará la sesión en otros dispositivos." },
     { icon: ListChecks, title: "Gestión de usuarios (admin)", text: "Crea cuentas para los docentes con su correo y una contraseña inicial. No existe registro público." },
-    { icon: Lightbulb, title: "Eliminar una cuenta", text: "Se pide confirmar escribiendo el correo: se borran también sus materiales y fuentes. Las cuentas de administrador no se eliminan." },
+    { icon: Lightbulb, title: "Desactivar en vez de eliminar", text: "Desactivar bloquea el acceso al instante y conserva los materiales; puedes reactivarla. Eliminar borra todo y pide confirmar escribiendo el correo." },
+    { icon: ShieldCheck, title: "Roles de administrador", text: "Con el escudo das o quitas el rol de administrador. La cuenta principal y la tuya propia están protegidas." },
   ] },
   "/fuentes": { title: "Mis fuentes", intro: "Los documentos que la IA usará como base para crear tus materiales.", cards: [
     { icon: FolderOpen, title: "Sube tus documentos", text: "Arrastra PDF, Word, PowerPoint, TXT o imágenes (hasta 50 MB). Cuando digan «Listo», ya puedes usarlos." },

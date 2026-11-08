@@ -37,10 +37,13 @@ class HealthController implements OnModuleInit {
 export class AppModule {}
 export async function createApp() {
  const app=await NestFactory.create(AppModule,{bodyParser:false,logger:process.env.NODE_ENV==='test'?['error']:['error','warn','log']});
+ // Behind a reverse proxy (Nginx, Render, Railway…) TRUST_PROXY=1 makes rate limits see each visitor's real IP.
+ if(process.env.TRUST_PROXY)app.getHttpAdapter().getInstance().set('trust proxy',/^\d+$/.test(process.env.TRUST_PROXY)?Number(process.env.TRUST_PROXY):process.env.TRUST_PROXY);
  app.setGlobalPrefix('api');app.enableShutdownHooks();app.enableCors({origin:settings.origin,credentials:true});
  app.use(helmet());app.use(cookieParser());app.use(json({limit:'1mb'}));app.use(urlencoded({extended:false,limit:'1mb'}));
  app.use('/api',rateLimit({windowMs:60*1000,limit:120,standardHeaders:'draft-8',legacyHeaders:false,message:{message:'Demasiadas solicitudes. Intenta en un minuto.'}}));
- app.use('/api/auth',rateLimit({windowMs:15*60*1000,limit:50,standardHeaders:'draft-8',legacyHeaders:false,message:{message:'Demasiados intentos de acceso. Intenta más tarde.'}}));
+ // Brute-force guard: only failed sign-ins count, so normal browsing (session checks, account management) is never blocked.
+ app.use('/api/auth/login',rateLimit({windowMs:15*60*1000,limit:20,skipSuccessfulRequests:true,standardHeaders:'draft-8',legacyHeaders:false,message:{message:'Demasiados intentos fallidos. Espera 15 minutos e intenta de nuevo.'}}));
  app.use((req:any,res:any,next:any)=>{
   res.setHeader('Cache-Control','no-store');
   if(!['GET','HEAD','OPTIONS'].includes(req.method)) {
