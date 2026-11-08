@@ -1,0 +1,42 @@
+# Praxis on Dokploy using a separate Dokploy "Database → PostgreSQL" service.
+# - The database service MUST use the image pgvector/pgvector:pg17 (Praxis needs the vector extension).
+# - Environment tab of this compose: DATABASE_URL = the database's "Internal Connection URL" + the other variables.
+# - Domain: Domains tab → service "frontend", port 3000, HTTPS with Let's Encrypt.
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_DRIVER: postgres
+      DATABASE_URL: ${DATABASE_URL:?Pega en DATABASE_URL la Internal Connection URL de la base de datos}
+      STORAGE_DRIVER: cloudinary
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      PORT: 4000
+      # Traefik → Next.js → API: Next.js keeps the visitor IP that Traefik sends in X-Forwarded-For.
+      TRUST_PROXY: 1
+    volumes:
+      - praxis_storage:/app/storage
+    networks:
+      - default
+      - dokploy-network   # where Dokploy databases live
+    mem_limit: 1g
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://backend:4000
+    environment:
+      API_URL: http://backend:4000
+    restart: unless-stopped
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    mem_limit: 768m
+volumes:
+  praxis_storage:
+networks:
+  dokploy-network:
+    external: true
