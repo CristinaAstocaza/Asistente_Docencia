@@ -26,6 +26,8 @@ services:
       HOST: 0.0.0.0
       NODE_ENV: production
       PORT: 4000
+      # Nginx → Next.js → API: Next.js keeps the visitor IP that Nginx sends in X-Forwarded-For.
+      TRUST_PROXY: 1
     volumes:
       - ./backend/storage:/app/storage
     depends_on:
