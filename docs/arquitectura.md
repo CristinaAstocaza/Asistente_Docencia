@@ -134,7 +134,9 @@ Todos los endpoints salvo health y los flujos iniciales de autenticación requie
 | Método | Ruta `/api` | Uso |
 |---|---|---|
 | GET | /health | Disponibilidad de DB y configuración IA |
-| POST | /auth/register, /auth/login | Registro/acceso |
+| POST | /auth/login, /auth/logout | Acceso (no hay registro público) |
+| GET/POST/DELETE | /auth/users, /auth/users/:id | Admin: listar, crear y eliminar cuentas |
+| POST | /auth/forgot-password, /auth/reset-password | Recuperación con código de 6 dígitos enviado por Gmail |
 | POST | /auth/refresh, /auth/logout | Renovación rotativa/revocación |
 | GET | /auth/me | Perfil de sesión |
 | GET, POST | /documents | Listar/cargar archivo |

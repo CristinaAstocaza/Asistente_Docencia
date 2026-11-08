@@ -1,10 +1,10 @@
 import {test,expect} from '@playwright/test';
 import {writeFile,mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {signInAsNewTeacher} from './accounts';
 
 test('uploads a 50 MB source through Next.js and preserves every byte',async({page},testInfo)=>{
- const registration=await page.request.post('/api/auth/register',{data:{name:'Prueba de subida',email:`upload-${Date.now()}@example.test`,password:'PruebaUpload123!'}});
- expect(registration.status()).toBe(201);
+ await signInAsNewTeacher(page,{name:'Prueba de subida',email:`upload-${Date.now()}@example.test`,password:'PruebaUpload123!'});
  await page.goto('/fuentes');
   await expect(page.getByText('Agregar un enlace web')).toHaveCount(1);
  const bytes=Buffer.alloc(50*1024*1024,65);

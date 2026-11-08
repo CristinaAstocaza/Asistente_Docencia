@@ -1,17 +1,24 @@
-import { Document,Header,Footer,HeadingLevel,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,PageOrientation,AlignmentType,TableLayoutType,PageNumber } from 'docx';
+import { Document,Header,Footer,HeadingLevel,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,PageOrientation,AlignmentType,TableLayoutType,PageNumber,ImageRun,BorderStyle } from 'docx';
+import { brandDocxHeader, stampPdfHeaders } from './brand';
 import PDFDocument from 'pdfkit';
 
 const clean=(text:unknown)=>String(text??'').replace(/\*\*(.*?)\*\*/g,'$1').replace(/^#{1,6}\s+/gm,'').trim();
 type Section={title:string;paragraphs?:string[];bullets?:string[]};
 export function academicSections(data:any,kind:string):Section[]{
- if(kind==='activity')return [
-  {title:'1. Logro a evaluar',paragraphs:[data.achievement]},
-  {title:'2. Indicación general',paragraphs:[data.generalInstructions]},
-  {title:'3. Indicaciones específicas',bullets:data.specificInstructions},
-  ...(data.recommendations?.length?[{title:'4. Recomendaciones',bullets:data.recommendations}]:[]),
-  {title:`${data.recommendations?.length?5:4}. Entrega`,bullets:data.submission},
-  {title:`${data.recommendations?.length?6:5}. Criterios de evaluación`,paragraphs:[data.evaluation]},
- ];
+ if(kind==='activity'){
+  const cs=data.caseStudy;
+  const parts:{title:string;paragraphs?:string[];bullets?:string[]}[]=[
+   {title:'Logro a evaluar',paragraphs:[data.achievement]},
+   {title:'Indicación general',paragraphs:[data.generalInstructions]},
+   // The case the session presented: same title, scenario, data and questions.
+   ...(cs?.title?[{title:`Caso de estudio: ${cs.title}`,paragraphs:String(cs.scenario||'').split(/\n+/).filter(Boolean),bullets:[...(cs.facts||[]).map((x:string)=>`Dato: ${x}`),...(cs.questions||[]).map((q:string,i:number)=>`Pregunta ${i+1}: ${q}`)]}]:[]),
+   {title:'Indicaciones específicas',bullets:data.specificInstructions},
+   ...(data.recommendations?.length?[{title:'Recomendaciones',bullets:data.recommendations}]:[]),
+   {title:'Entrega',bullets:data.submission},
+   {title:'Criterios de evaluación',paragraphs:[data.evaluation]},
+  ];
+  return parts.map((part,i)=>({...part,title:`${i+1}. ${part.title}`}));
+ }
  return (data.sections??[]).map((s:any,i:number)=>({title:`${i+1}. ${clean(s.title).replace(/^\d+[.)]\s*/,'')}`,paragraphs:[s.content]}));
 }
 export const citationText = (c: any) => {
@@ -22,8 +29,9 @@ export const citationText = (c: any) => {
 function paragraph(text:unknown,options:{bold?:boolean;heading?:boolean;bullet?:boolean;center?:boolean;small?:boolean}={}){
  return new Paragraph({alignment:options.center?AlignmentType.CENTER:AlignmentType.LEFT,heading:options.heading?HeadingLevel.HEADING_2:undefined,keepNext:options.heading,bullet:options.bullet?{level:0}:undefined,spacing:{before:options.heading?220:0,after:140,line:276},children:clean(text).split('\n').flatMap((part,i)=>[...(i?[new TextRun({break:1})]:[]),new TextRun({text:part,font:'Arial',size:options.small?18:22,bold:options.bold??options.heading})])});
 }
-function document(children:(Paragraph|Table)[],landscape=false){
- return new Document({styles:{default:{document:{run:{font:'Arial',size:22},paragraph:{spacing:{line:276,after:140}}}}},sections:[{properties:{page:{size:{width:11906,height:16838,orientation:landscape?PageOrientation.LANDSCAPE:PageOrientation.PORTRAIT},margin:{top:900,bottom:900,left:900,right:900}}},headers:{default:new Header({children:[new Paragraph({text:'Material académico',alignment:AlignmentType.RIGHT,children:[new TextRun({text:'',size:16})]})]})},footers:{default:new Footer({children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({children:[PageNumber.CURRENT,' / ',PageNumber.TOTAL_PAGES],font:'Arial',size:18})]})]})},children}]});
+// Rubrics are the only documents without the UNICA shield.
+function document(children:(Paragraph|Table)[],landscape=false,branded=true){
+ return new Document({styles:{default:{document:{run:{font:'Arial',size:22},paragraph:{spacing:{line:276,after:140}}}}},sections:[{properties:{page:{size:{width:11906,height:16838,orientation:landscape?PageOrientation.LANDSCAPE:PageOrientation.PORTRAIT},margin:{top:branded?1200:900,bottom:900,left:900,right:900,header:450}}},headers:{default:branded?brandDocxHeader('Material académico'):new Header({children:[new Paragraph({children:[]})]})},footers:{default:new Footer({children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({children:[PageNumber.CURRENT,' / ',PageNumber.TOTAL_PAGES],font:'Arial',size:18})]})]})},children}]});
 }
 const contextParagraphs=(data:any)=>(data.context??[]).map((s:any)=>paragraph(`${s.title}: ${s.content}`,{small:true}));
 export async function renderAcademicDocx(data:any,kind:string,citations:any[]=[]){
@@ -45,13 +53,13 @@ export async function renderAcademicRubricDocx(data:any,citations:any[]=[]){
   rows.push(new TableRow({children:[cell(`${criterion.name}${data.scoringMode!=='points'&&criterion.weight!==undefined?`\nPeso: ${criterion.weight} %`:''}`,0),cell(criterion.definition??criterion.name,1),...names.map((name,i)=>{const l=criterion.levels.find((l:any)=>l.name===name);return cell(`${l.description}\n\n${l.score} puntos`,i+2);})]}));
  }
  const legend=data.scoringMode==='points'?`Puntaje máximo: ${data.totalPoints} puntos.`:'Calificación ponderada: los pesos de los criterios suman 100 %.';
- return Packer.toBuffer(document([paragraph(data.title,{center:true,bold:true}),...contextParagraphs(data),paragraph(legend,{small:true}),new Table({width:{size:100,type:WidthType.PERCENTAGE},columnWidths:widths,layout:TableLayoutType.FIXED,rows}),...(citations.length?[paragraph('Fuentes consultadas',{heading:true}),...citations.map(c=>paragraph(citationText(c),{small:true}))]:[])],true));
+ return Packer.toBuffer(document([paragraph(data.title,{center:true,bold:true}),...contextParagraphs(data),paragraph(legend,{small:true}),new Table({width:{size:100,type:WidthType.PERCENTAGE},columnWidths:widths,layout:TableLayoutType.FIXED,rows})],true,false));
 }
-function pdfBytes(landscape:boolean,render:(doc:PDFKit.PDFDocument)=>void):Promise<Buffer>{
+function pdfBytes(landscape:boolean,render:(doc:PDFKit.PDFDocument)=>void,branded=true):Promise<Buffer>{
  return new Promise((resolve,reject)=>{
-  const doc=new PDFDocument({size:'A4',layout:landscape?'landscape':'portrait',margin:48,bufferPages:true});const chunks:Buffer[]=[];
+  const doc=new PDFDocument({size:'A4',layout:landscape?'landscape':'portrait',margins:{top:branded?58:48,bottom:48,left:48,right:48},bufferPages:true});const chunks:Buffer[]=[];
   doc.on('data',b=>chunks.push(b));doc.on('error',reject);doc.on('end',()=>resolve(Buffer.concat(chunks)));
-  try{render(doc);const range=doc.bufferedPageRange();for(let i=range.start;i<range.start+range.count;i++){doc.switchToPage(i);const bottom=doc.page.margins.bottom;doc.page.margins.bottom=0;doc.font('Helvetica').fontSize(8).fillColor('#666666').text(`${i+1} / ${range.count}`,48,doc.page.height-30,{width:doc.page.width-96,align:'center',lineBreak:false});doc.page.margins.bottom=bottom;}doc.end();}catch(error){doc.destroy();reject(error);}
+  try{render(doc);if(branded)stampPdfHeaders(doc,'Material académico');const range=doc.bufferedPageRange();for(let i=range.start;i<range.start+range.count;i++){doc.switchToPage(i);const bottom=doc.page.margins.bottom;doc.page.margins.bottom=0;doc.font('Helvetica').fontSize(8).fillColor('#666666').text(`${i+1} / ${range.count}`,48,doc.page.height-30,{width:doc.page.width-96,align:'center',lineBreak:false});doc.page.margins.bottom=bottom;}doc.end();}catch(error){doc.destroy();reject(error);}
  });
 }
 function pdfTitle(doc:PDFKit.PDFDocument,title:string){doc.font('Helvetica-Bold').fontSize(14).fillColor('#111111').text(clean(title),{align:'center'}).moveDown(1);}
@@ -105,6 +113,5 @@ export function renderAcademicRubricPdf(data:any,citations:any[]=[]){
     drawRow(texts,height);remaining=remaining.map((text,i)=>text.slice(texts[i].length).trim());if(remaining.some(Boolean))nextPage();
    }
   }
-  if(citations.length){if(y>doc.page.height-120)doc.addPage();doc.moveDown().font('Helvetica-Bold').fontSize(10).text('Fuentes consultadas');for(const c of citations)doc.font('Helvetica').fontSize(8.5).text(citationText(c));}
- });
+ },false);
 }

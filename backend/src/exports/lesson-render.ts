@@ -1,5 +1,6 @@
 import { Document, Footer, HeadingLevel, Packer, PageNumber, Paragraph, TextRun } from 'docx';
 import PDFDocument from 'pdfkit';
+import { brandDocxHeader, stampPdfHeaders } from './brand';
 
 type Block={text:string;kind:'paragraph'|'bullet'|'number'|'code'|'heading';number?:number};
 const moments=[
@@ -42,12 +43,12 @@ export async function renderLessonDocx(data:any,citations:any[]=[]){
   for(const [key,label] of m.parts){children.push(new Paragraph({heading:HeadingLevel.HEADING_2,children:[new TextRun({text:label,color:'334155',bold:true,size:23})],spacing:{before:160,after:120},keepNext:true}));body(data[key]);}
  }
  if(citations.length){children.push(new Paragraph({text:'Fuentes consultadas',heading:HeadingLevel.HEADING_1,keepNext:true}));citations.forEach(c=>body(citation(c)));}
- return Packer.toBuffer(new Document({styles:{default:{document:{run:{font:'Calibri',size:22,color:'334155'},paragraph:{spacing:{line:300,after:140}}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:1000,bottom:1000,left:1100,right:1100}}},footers:{default:new Footer({children:[new Paragraph({alignment:'center',children:[new TextRun({text:'Clase del día · ',color:'64748B',size:18}),new TextRun({children:[PageNumber.CURRENT],color:'64748B',size:18})]})]})},children}]}));
+ return Packer.toBuffer(new Document({styles:{default:{document:{run:{font:'Calibri',size:22,color:'334155'},paragraph:{spacing:{line:300,after:140}}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:1300,bottom:1000,left:1100,right:1100,header:500}}},headers:{default:brandDocxHeader('Clase del día')},footers:{default:new Footer({children:[new Paragraph({alignment:'center',children:[new TextRun({text:'Clase del día · ',color:'64748B',size:18}),new TextRun({children:[PageNumber.CURRENT],color:'64748B',size:18})]})]})},children}]}));
 }
 const plain=(text:string)=>text.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/`([^`]+)`/g,'$1');
 export function renderLessonPdf(data:any,citations:any[]=[]):Promise<Buffer>{
  return new Promise((resolve,reject)=>{
-  const doc=new PDFDocument({size:'A4',margin:48,bufferPages:true});const chunks:Buffer[]=[];
+  const doc=new PDFDocument({size:'A4',margins:{top:58,bottom:48,left:48,right:48},bufferPages:true});const chunks:Buffer[]=[];
   doc.on('data',b=>chunks.push(b));doc.on('error',reject);doc.on('end',()=>resolve(Buffer.concat(chunks)));
   const width=doc.page.width-96;
   const space=(height:number)=>{if(doc.y+height>doc.page.height-55)doc.addPage();};
@@ -71,6 +72,7 @@ export function renderLessonPdf(data:any,citations:any[]=[]):Promise<Buffer>{
    doc.font('Helvetica-Oblique').fontSize(9).fillColor('#64748B').text('Los tiempos sugeridos son orientativos: ajústalos al ritmo de tu aula.',{width}).moveDown(1);
    for(const [i,m] of moments.entries()){heading(`${i+1}. ${m.title}`,m.color,m.tint,140);for(const [key,label] of m.parts){heading(label,'334155');body(data[key]);}}
    if(citations.length){heading('Fuentes consultadas','334155');citations.forEach(c=>body(citation(c)));}
+   stampPdfHeaders(doc,'Clase del día');
    const range=doc.bufferedPageRange();for(let i=range.start;i<range.start+range.count;i++){doc.switchToPage(i);doc.page.margins.bottom=0;doc.font('Helvetica').fontSize(8).fillColor('#64748B').text(`Clase del día · ${i+1} / ${range.count}`,48,doc.page.height-30,{width,align:'center',lineBreak:false});}
    doc.end();
   }catch(error){doc.destroy();reject(error);}

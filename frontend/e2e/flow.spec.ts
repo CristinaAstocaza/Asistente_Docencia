@@ -1,7 +1,9 @@
 import { test,expect } from '@playwright/test';
-test('teacher can register, upload a source, use real dashboard data and log out',async({page})=>{
+import { signInAsNewTeacher } from './accounts';
+test('admin-created teacher can sign in, upload a source, use real dashboard data and log out',async({page})=>{
  const email=`smoke-${Date.now()}@example.test`;
- await page.goto('/register');await page.getByLabel('Nombre completo').fill('Docente de prueba');await page.getByLabel('Institución educativa').fill('Instituto de prueba');await page.getByLabel('Correo electrónico').fill(email);await page.getByLabel('Contraseña',{exact:true}).fill('PruebaSegura123');await page.getByRole('button',{name:'Crear mi cuenta gratis'}).click();
+ await page.goto('/login');await expect(page.getByRole('link',{name:/Regístrate|Crear una cuenta/})).toHaveCount(0);
+ await signInAsNewTeacher(page,{name:'Docente de prueba',institution:'Instituto de prueba',email,password:'PruebaSegura123'});await page.goto('/dashboard');
  await expect(page).toHaveURL(/\/dashboard/);await expect(page.getByRole('heading',{name:'Hola, Docente de prueba'})).toBeVisible();
  await page.getByRole('link',{name:'Mis fuentes',exact:true}).click();await page.locator('input[type=file]').setInputFiles({name:'sumas.txt',mimeType:'text/plain',buffer:Buffer.from('La suma reúne cantidades. Dos pares de objetos forman cuatro objetos. 2 + 2 = 4.')});await expect(page.getByRole('cell',{name:/sumas.txt/}).first()).toBeVisible();
  await page.getByRole('link',{name:'Dashboard',exact:true}).click();await expect(page.locator('.stat-card').first()).toContainText('1');

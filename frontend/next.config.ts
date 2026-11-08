@@ -8,7 +8,8 @@ const nextConfig: NextConfig = {
   // Allow a 50 MB file plus multipart headers through the API rewrite.
   // AI generation can outlast the default 30-second upstream socket deadline.
   // Leave room for source retrieval, provider retries and optional visual generation.
-  experimental: { proxyClientMaxBodySize: "55mb", proxyTimeout: 600_000 },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  experimental: { proxyClientMaxBodySize: "55mb", proxyTimeout: 600_000, agentUpgrade: "security" as any },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

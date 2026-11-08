@@ -1,4 +1,4 @@
-export interface Teacher { id:string;name:string;email:string;institution:string;temporaryAccess?:boolean }
+export interface Teacher { id:string;name:string;email:string;institution:string;is_admin?:boolean }
 export interface Source {id:string;name:string;type:string;size:number;status:'processing'|'ready'|'error';error?:string;folder:string;category?:string;enabled?:boolean;url?:string;created_at:string}
 export interface Citation {reference:number;documentId:string;chunkId:string;name:string;page:number|null}
 export type Kind='guide'|'planning'|'activity'|'lesson'|'session'|'syllabus'|'questions'|'exam'|'rubric'|'presentation'|'summary';

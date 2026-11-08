@@ -90,3 +90,31 @@ CREATE TABLE IF NOT EXISTS stored_files (
  storage_key uuid PRIMARY KEY, driver text NOT NULL CHECK(driver IN ('local','s3','cloudinary')),
  created_at timestamptz NOT NULL DEFAULT now()
 );
+-- A syllabus the teacher accepted becomes a course; each week gets its session, slides and activity.
+CREATE TABLE IF NOT EXISTS courses (
+ id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ syllabus_id uuid NOT NULL UNIQUE REFERENCES generated_content(id) ON DELETE CASCADE,
+ title text NOT NULL, code text NOT NULL DEFAULT '', info jsonb NOT NULL DEFAULT '{}',
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS courses_owner_idx ON courses(user_id);
+CREATE TABLE IF NOT EXISTS course_weeks (
+ id uuid PRIMARY KEY, course_id uuid NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+ week integer NOT NULL, unit_title text NOT NULL DEFAULT '', topic text NOT NULL, info jsonb NOT NULL DEFAULT '{}',
+ status text NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','generating','ready','error')), error text,
+ session_id uuid REFERENCES generated_content(id) ON DELETE SET NULL,
+ presentation_id uuid REFERENCES generated_content(id) ON DELETE SET NULL,
+ activity_id uuid REFERENCES generated_content(id) ON DELETE SET NULL,
+ updated_at timestamptz NOT NULL DEFAULT now(), UNIQUE(course_id, week)
+);
+ALTER TABLE course_weeks ADD COLUMN IF NOT EXISTS rubric_id uuid REFERENCES generated_content(id) ON DELETE SET NULL;
+-- Sources chosen for a course; their text and pictures feed every week's materials.
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS source_ids jsonb NOT NULL DEFAULT '[]';
+-- Admin flag: users with is_admin=true can create and delete other users.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin boolean NOT NULL DEFAULT false;
+-- Password recovery: one active 6-digit code per user, emailed by Gmail; attempts are capped.
+CREATE TABLE IF NOT EXISTS password_reset_codes (
+ user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+ code_hash text NOT NULL, attempts integer NOT NULL DEFAULT 0,
+ expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+);

@@ -12,13 +12,15 @@ import { AssetManager,VisualModule } from '../visual/visual.module';
 import { renderGuideDocx,renderGuidePdf } from './guide-render';
 import { renderPublishedGuideDocx,renderPublishedGuidePdf } from './guide-publication';
 import { planningDocument } from './planning-render';
-import { sessionDocument } from './session-render';
+import { renderSessionDocx,renderSessionPdf } from './session-document';
+import { renderActivityDocx,renderActivityPdf } from './activity-document';
 import { presentationImages } from './presentation-images';
 import { buildPresentationScene,renderPresentationPdf,renderPresentationPptx } from './presentation-render';
 import { renderAcademicDocx,renderAcademicPdf,renderAcademicRubricDocx,renderAcademicRubricPdf } from './academic-render';
 import { renderLessonDocx,renderLessonPdf } from './lesson-render';
 import { renderSyllabusDocx,renderSyllabusPdf } from './syllabus-render';
-import { renderExamPdf } from './exam-render';
+import { renderExamDocx, renderExamPdf } from './exam-render';
+import { Storage } from '../documents/storage';
 export function quizCsv(questions:any[],platform:string) {
  const escape=(value:unknown)=>`"${String(value??'').replace(/"/g,'""').replace(/^[=+@-]/,"'$&")}"`;
  const header=['Question Text','Question Type','Option 1','Option 2','Option 3','Option 4','Correct Answer','Time in seconds','Answer explanation'];
@@ -30,29 +32,36 @@ export function quizCsv(questions:any[],platform:string) {
 }
 @Controller() @UseGuards(AuthGuard)
 export class ExportsController {
- constructor(private readonly db:Database,private readonly assets:AssetManager) {}
+ constructor(private readonly db:Database,private readonly assets:AssetManager,private readonly storage:Storage) {}
+ /** Slide pictures are the teacher's own assets; another account's ids are never read. */
+ async ownedImage(userId:string,id:string){return (await this.assets.get(userId,id)).bytes as Buffer;}
  async content(id:string,userId:string) {const [c]=await this.db.query('SELECT * FROM generated_content WHERE id=$1 AND user_id=$2',[parse(uuid,id),userId]);if(!c)throw new NotFoundException();return c;}
  @Get('content/:id/guide-preview') async guidePreview(@Req() req:UserRequest,@Param('id') id:string,@Res() res:Response){
   const content=await this.content(id,req.user.id);if(content.kind!=='guide')throw new BadRequestException('Selecciona una guía.');
   const images=new Map();for(const b of content.data.blocks)if(b.assetId&&!images.has(b.assetId))images.set(b.assetId,await this.assets.get(req.user.id,b.assetId));
   res.setHeader('Content-Type','application/pdf');res.setHeader('Content-Disposition','inline; filename="guia.pdf"');res.send(await renderPublishedGuidePdf(content.data,images,content.citations));
  }
+ /** The syllabus exactly as its PDF will be downloaded, shown inside the page (not counted as an export). */
+ @Get('content/:id/syllabus-preview') async syllabusPreview(@Req() req:UserRequest,@Param('id') id:string,@Res() res:Response){
+  const content=await this.content(id,req.user.id);if(content.kind!=='syllabus')throw new BadRequestException('Selecciona un sílabo.');
+  res.setHeader('Content-Type','application/pdf');res.setHeader('Content-Disposition','inline; filename="silabo.pdf"');res.send(await renderSyllabusPdf(content.data,content.citations));
+ }
  @Get('content/:id/presentation-preview') async preview(@Req() req:UserRequest,@Param('id') id:string,@Res() res:Response){
   const content=await this.content(id,req.user.id);
   if(content.kind!=='presentation')throw new BadRequestException('Selecciona una presentación.');
-  const scene=buildPresentationScene(content.data,await presentationImages(content.data),content.citations);
+  const scene=buildPresentationScene(content.data,await presentationImages(content.data,key=>this.ownedImage(req.user.id,key)),content.citations);
   res.setHeader('Content-Type','application/pdf');res.setHeader('X-Presentation-Images',String(scene.imageCount));
   res.setHeader('Content-Disposition','inline; filename="presentacion.pdf"');res.send(await renderPresentationPdf(scene));
  }
  @Post('content/:id/export') async export(@Req() req:UserRequest,@Param('id') id:string,@Body() input:unknown,@Res() res:Response) {
-  const params=parse(z.object({format:z.enum(['docx','pdf','pptx']),answerKey:z.boolean().default(false),variant:z.enum(['original','A','B']).default('original')}),input);
+  const params=parse(z.object({format:z.enum(['docx','pdf','pptx']),answerKey:z.boolean().default(false),variant:z.enum(['original','A','B']).default('original'),preview:z.boolean().default(false)}),input);
   const content=await this.content(id,req.user.id);
   const data=content.kind==='exam'?examVersion(content.data,params.variant):content.data;
   const lines=flatten(data,params.answerKey);
   if(content.citations.length) {lines.push({text:'Fuentes consultadas',heading:true});for(const c of content.citations)lines.push({text:`[${c.reference}] ${c.name}${c.page?` — página/diapositiva ${c.page}`:''}`});}
   let bytes:Buffer;
   if(content.kind==='session'&&['pdf','docx'].includes(params.format)){
-   const session=sessionDocument(data),images=new Map();for(const image of data.images||[])images.set(image.assetId,await this.assets.get(req.user.id,image.assetId));bytes=params.format==='docx'?await renderGuideDocx(session,images,content.citations):await renderGuidePdf(session,images,content.citations);
+   const images=new Map();for(const image of data.images||[])images.set(image.assetId,await this.assets.get(req.user.id,image.assetId));bytes=params.format==='docx'?await renderSessionDocx(data,images,content.citations):await renderSessionPdf(data,images,content.citations);
   }
   else if(content.kind==='planning'&&['pdf','docx'].includes(params.format)){
    const plan=planningDocument(data);bytes=params.format==='docx'?await renderGuideDocx(plan,new Map(),content.citations):await renderGuidePdf(plan,new Map(),content.citations);
@@ -62,21 +71,26 @@ export class ExportsController {
    bytes=params.format==='docx'?await renderPublishedGuideDocx(data,images,content.citations):await renderPublishedGuidePdf(data,images,content.citations);
   }
   else if(content.kind==='presentation'&&['pdf','pptx'].includes(params.format)){
-   const images=await presentationImages(data);
+   const images=await presentationImages(data,key=>this.ownedImage(req.user.id,key));
    const scene=buildPresentationScene(data,images,content.citations);
    res.setHeader('X-Presentation-Images',String(scene.imageCount));
    bytes=params.format==='pptx'?await renderPresentationPptx(scene):await renderPresentationPdf(scene);
   }
   else if(params.format==='pptx')throw new BadRequestException('Solo las presentaciones se exportan a PowerPoint.');
-  else if(['exam','questions'].includes(content.kind)&&params.format==='pdf')bytes=await renderExamPdf(data,params.answerKey);
+  else if(['exam','questions'].includes(content.kind)){
+   const images=new Map();for(const q of data.questions||[])if(q.image?.assetId&&!images.has(q.image.assetId)){try{images.set(q.image.assetId,await this.assets.get(req.user.id,q.image.assetId));}catch{/* deleted image */}}
+   bytes=params.format==='docx'?await renderExamDocx(data,params.answerKey,images):await renderExamPdf(data,params.answerKey,images);
+  }
   else if(content.kind==='syllabus')bytes=params.format==='docx'?await renderSyllabusDocx(data,content.citations):await renderSyllabusPdf(data,content.citations);
   else if(content.kind==='lesson')bytes=params.format==='docx'?await renderLessonDocx(data,content.citations):await renderLessonPdf(data,content.citations);
   else if(content.kind==='rubric')bytes=params.format==='docx'?await renderAcademicRubricDocx(data,content.citations):await renderAcademicRubricPdf(data,content.citations);
-  else if(['activity','summary'].includes(content.kind))bytes=params.format==='docx'?await renderAcademicDocx(data,content.kind,content.citations):await renderAcademicPdf(data,content.kind,content.citations);
+  else if(content.kind==='activity')bytes=params.format==='docx'?await renderActivityDocx(data,content.citations):await renderActivityPdf(data,content.citations);
+  else if(content.kind==='summary')bytes=params.format==='docx'?await renderAcademicDocx(data,content.kind,content.citations):await renderAcademicPdf(data,content.kind,content.citations);
   else bytes=params.format==='docx'?await renderDocx(lines):await renderPdf(lines);
-  await this.db.query('INSERT INTO exports(id,user_id,content_id,format) VALUES($1,$2,$3,$4)',[randomUUID(),req.user.id,id,params.format]);
+  // A preview shown on screen is not a download.
+  if(!params.preview)await this.db.query('INSERT INTO exports(id,user_id,content_id,format) VALUES($1,$2,$3,$4)',[randomUUID(),req.user.id,id,params.format]);
   const mime={docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pdf:'application/pdf',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation'}[params.format];
-  res.setHeader('Content-Type',mime);res.setHeader('Content-Disposition',`attachment; filename="material-${id}.${params.format}"`);res.send(bytes);
+  res.setHeader('Content-Type',mime);res.setHeader('Content-Disposition',`${params.preview?'inline':'attachment'}; filename="material-${id}.${params.format}"`);res.send(bytes);
  }
  @Post('integrations/:platform/export') async quiz(@Req() req:UserRequest,@Param('platform') platform:string,@Body() input:unknown,@Res() res:Response) {
   if(!['quizizz','kahoot'].includes(platform))throw new BadRequestException('Integración no disponible.');
@@ -87,5 +101,5 @@ export class ExportsController {
   res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');res.setHeader('Content-Disposition',`attachment; filename="${platform}-preguntas.xlsx"`);res.send(workbook);
  }
 }
-@Module({imports:[VisualModule],controllers:[ExportsController]})
+@Module({imports:[VisualModule],controllers:[ExportsController],providers:[Storage]})
 export class ExportsModule {}

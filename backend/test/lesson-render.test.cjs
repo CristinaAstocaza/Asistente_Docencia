@@ -15,12 +15,13 @@ test('Word lesson has classroom order, colored headings, code font and footer',a
  let previous=-1;for(const heading of headings){const index=xml.indexOf(heading);assert.ok(index>previous,heading);previous=index;}
  assert.match(xml,/w:fill="F5F3FF"/);assert.match(xml,/Consolas/);assert.match(xml,/w:val="Heading1"/);assert.match(xml,/1\. Abrir el editor/);assert.match(xml,/Manual API/);assert.ok(zip.file('word/footer1.xml'));
 });
+const header=s=>/SAN LUIS GONZAGA|^Clase del día$|^Evaluación escrita$|^Solucionario$/.test(s.trim());
 test('PDF lesson preserves order and long content across pages with visible footers',async()=>{
  const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');
  const long={...lesson,development:[...lesson.development,'Explicación del servidor. '.repeat(700)+'FIN DEL CONTENIDO LARGO']};
  const pdf=await pdfjs.getDocument({data:new Uint8Array(await renderLessonPdf(long)),isEvalSupported:false}).promise;
  let text='';assert.ok(pdf.numPages>2);
- for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const items=(await page.getTextContent()).items;const pageText=items.map(x=>x.str).join(' ');text+=pageText+' ';assert.match(pageText,new RegExp('Clase del día · '+i+' / '+pdf.numPages));for(const item of items)if(item.str.trim())assert.ok(item.transform[5]>=20&&item.transform[5]<=page.view[3]-35,item.str);}
+ for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const items=(await page.getTextContent()).items;const pageText=items.map(x=>x.str).join(' ');text+=pageText+' ';assert.match(pageText,new RegExp('Clase del día · '+i+' / '+pdf.numPages));for(const item of items)if(item.str.trim()&&!header(item.str))assert.ok(item.transform[5]>=20&&item.transform[5]<=page.view[3]-35,item.str);}
  let previous=-1;for(const heading of ['Qué aprenderán hoy','1. Cómo empezar','2. Qué explicar','3. Qué harán los estudiantes','4. Cómo cerrar']){const index=text.indexOf(heading);assert.ok(index>previous,heading);previous=index;}
  assert.match(text,/FIN DEL CONTENIDO LARGO/);assert.match(text,/const\s+tareas/);assert.match(text,/3\. Probar la ruta/);await pdf.cleanup();
 });

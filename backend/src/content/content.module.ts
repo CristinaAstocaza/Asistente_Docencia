@@ -1,3 +1,4 @@
+import { settings } from '../config';
 import { BadRequestException, Body, Controller, Delete, Get, Module, NotFoundException, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -51,7 +52,7 @@ export class ContentController {
  @Get('dashboard') async dashboard(@Req() req:UserRequest) {
   const [docs]=await this.db.query('SELECT count(*)::integer AS count,coalesce(sum(size),0)::bigint AS bytes FROM documents WHERE user_id=$1',[req.user.id]);
   const counts=await this.db.query('SELECT kind,count(*)::integer AS count FROM generated_content WHERE user_id=$1 GROUP BY kind',[req.user.id]);
-  return {documents:docs.count,storageBytes:Number(docs.bytes),counts:Object.fromEntries(counts.map(x=>[x.kind,x.count])),recent:await this.db.query('SELECT id,kind,title,version,created_at FROM generated_content WHERE user_id=$1 ORDER BY created_at DESC LIMIT 8',[req.user.id]),sources:await this.db.query('SELECT id,name,type,size,status,created_at FROM documents WHERE user_id=$1 ORDER BY created_at DESC LIMIT 5',[req.user.id])};
+  return {documents:docs.count,storageBytes:Number(docs.bytes),storageLimit:settings.storageLimit,counts:Object.fromEntries(counts.map(x=>[x.kind,x.count])),recent:await this.db.query('SELECT id,kind,title,version,created_at FROM generated_content WHERE user_id=$1 ORDER BY created_at DESC LIMIT 8',[req.user.id]),sources:await this.db.query('SELECT id,name,type,size,status,created_at FROM documents WHERE user_id=$1 ORDER BY created_at DESC LIMIT 5',[req.user.id])};
  }
  @Get('usage') async usage(@Req() req:UserRequest) {const [usage]=await this.db.query(`SELECT count(*) FILTER (WHERE ${userRequestFilter})::integer AS requests,coalesce(sum(tokens_input),0)::integer AS tokens_input,coalesce(sum(tokens_output),0)::integer AS tokens_output FROM ai_usage WHERE user_id=$1`,[req.user.id]);return usage;}
  @Patch('profile') async profile(@Req() req:UserRequest,@Body() input:unknown) {

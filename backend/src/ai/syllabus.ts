@@ -1,7 +1,10 @@
 import { z } from 'zod';
-const text=z.string().min(1).max(15000),list=z.array(text).min(1).max(100),optionalList=z.array(text).max(100);
+const text=z.string().min(1).max(25000),list=z.array(text).min(1).max(100),optionalList=z.array(text).max(100);
 const details={
- generalData:z.object({institution:z.string().max(200),courseCode:z.string().max(100),careers:optionalList,modality:z.string().max(100),weeklyHours:z.number().nonnegative().max(60),term:z.string().max(200),nature:z.string().max(200),prerequisites:z.string().max(1000)}),
+ generalData:z.object({institution:z.string().max(200),courseCode:z.string().max(100),careers:optionalList,modality:z.string().max(100),weeklyHours:z.number().nonnegative().max(60),term:z.string().max(200),nature:z.string().max(200),prerequisites:z.string().max(1000),
+  theoryHours:z.number().nonnegative().max(60).optional(),practiceHours:z.number().nonnegative().max(60).optional(),chronologicalPeriod:z.string().max(200).optional(),condition:z.string().max(100).optional(),mission:z.string().max(3000).optional(),
+  teacherName:z.string().max(300).optional(),teacherDni:z.string().max(30).optional(),teacherEmail:z.string().max(200).optional(),
+  timetable:z.array(z.object({section:z.string().max(60),theorySchedule:z.string().max(120),theoryRoom:z.string().max(120),practiceSchedule:z.string().max(120),practiceRoom:z.string().max(120)})).max(12).optional()}),
  rationale:text,
  generalOutcome:text,
  evaluationPlan:z.object({status:z.enum(['provided','proposed']),items:z.array(z.object({code:z.string().min(1).max(30),description:text,week:z.number().int().min(1).max(52),weight:z.number().positive().max(100),observation:text})).min(1).max(30),rules:optionalList}),
@@ -21,7 +24,6 @@ const coverPageSchema = z.object({
  location: z.string().max(100).optional(),
 }).optional();
 
-// Existing syllabi remain editable; every new generation requires the complete structure.
 export const syllabusContract=z.object({
  title:text,
  course:text,
@@ -35,57 +37,85 @@ export const syllabusContract=z.object({
  evaluation:list,
  bibliography:list,
   coverPage:coverPageSchema,
-  baseSections:z.array(z.object({title:text,content:text})).max(40).optional(),
+  baseSections:z.array(z.object({title:text,content:text})).max(50).optional(),
+  signatureDate:z.string().max(100).optional(),
   changesSummary:optionalList.optional(),
   pendingFields:optionalList.optional(),
   verificationNotes:optionalList.optional()
 }).extend(Object.fromEntries(Object.entries(details).map(([key,schema])=>[key,schema.optional()])) as {[K in keyof typeof details]:z.ZodOptional<(typeof details)[K]>});
 export const syllabusGenerationContract=syllabusContract.extend(details);
 
-export const syllabusPrompt=`Eres un diseñador curricular universitario experto en sílabos por competencias (SUNEDU, Perú) y en documentos formales institucionales en Word (.docx) listos para imprimir.
 
-PROPÓSITO Y METODOLOGÍA DE DISEÑO:
-Cuando el docente proporcione información, fuentes, un SÍLABO BASE (cuyo contenido debe mejorarse) y/o un SÍLABO MODELO / REFERENTE (cuyo formato y estructura debes replicar), genera un nuevo sílabo universitario formal con el contenido del BASE corregido y mejorado, usando el MODELO como molde exacto.
+/** Single supported format: syllabus of the Universidad Nacional "San Luis Gonzaga" (UNICA, Ica). */
+export const syllabusPrompt=`Eres un diseñador curricular universitario de la Universidad Nacional "San Luis Gonzaga" (UNICA, Ica-Perú), experto en sílabos por competencias (SUNEDU).
+Redactas SIEMPRE con el formato oficial de sílabo de la UNICA. El programa dibuja el documento con un diseño fijo idéntico al de la UNICA; tú solo entregas el contenido en el esquema JSON.
 
-COPIA DEL MODELO (molde exacto sin alterar):
-- Replica con precisión la estructura formal del referente: formato institucional, tamaño de página, márgenes, fuentes y jerarquías, alineación, portada, encabezados, pie de página, numeración, orden de secciones, columnas y estilo de tablas, textos institucionales fijos (universidad, facultad, departamento, misión, reglamento y fórmula de evaluación) y bloque de firmas.
-- PORTADA INSTITUCIONAL (coverPage): Extrae fielmente los datos de la carátula institucional del sílabo de referencia: institution (ej. UNIVERSIDAD NACIONAL "SAN LUIS GONZAGA"), faculty (ej. FACULTAD DE INGENIERÍA DE SISTEMAS), department (ej. DEPARTAMENTO ACADÉMICO DE INGENIERÍA DE SISTEMAS), course (nombre del curso solicitado), semester (ej. II SEMESTRE), year (ej. 2026 - I o año indicado) y location (ej. ICA-PERÚ o ciudad de la institución).
+FORMATO FIJO (no lo cambies, no agregues ni quites secciones):
+- Portada (coverPage): institution = UNIVERSIDAD NACIONAL "SAN LUIS GONZAGA" (salvo otro valor en Parámetros), faculty (ej. FACULTAD DE INGENIERÍA DE SISTEMAS), department (ej. DEPARTAMENTO ACADÉMICO DE INGENIERÍA DE SISTEMAS), course (curso solicitado), semester (ej. II SEMESTRE), year (ej. 2026 - I), location = ICA-PERÚ.
+- I. INFORMACIÓN GENERAL Y DATOS DEL CURSO: 1.1 Datos Curriculares, 1.2 Datos del Periodo Académico, 1.3 Carga Horaria (horas de teoría + práctica = horas semanales; tabla de horario y ambientes en generalData.timetable), 1.4 Cuerpo Académico.
+- II. FUNDAMENTO CURRICULAR E INSTITUCIONAL: 2.1 Misión institucional, 2.2 Sumilla (description), 2.3 Fundamentación del curso (rationale).
+- III. COMPETENCIAS, CAPACIDADES Y LOGROS DEL CURSO: 3.1 competency, 3.2 outcomes (capacidades), 3.3 generalOutcome.
+- IV. CONTENIDOS ORGANIZADOS EN UNIDADES Y SECUENCIAS DE APRENDIZAJES: por unidad «UNIDAD Nº n: TÍTULO», LOGRO DE LA UNIDAD y tabla Nº semana | contenido | actividades | evidencias | bibliografía (sale de units y schedule).
+- V. ESTRATEGIAS METODOLÓGICAS (methodology), VI. EVALUACIÓN (evaluationPlan), VII. FUENTES DE INFORMACIÓN (bibliographyDetails), VIII. CRONOGRAMA DE ACTIVIDADES (schedule) y firmas.
 
-CAMBIA SOLO EL CONTENIDO DEL CURSO:
-1. Datos curriculares (generalData): curso, código, institución, carreras, créditos, ciclo o periodo, modalidad, horas semanales (horas de teoría y horas de práctica que sumen exactamente las horas semanales declaradas), naturaleza y prerrequisitos.
-2. Fundamentación (rationale): explica de manera desarrollada y con rigor académico la relevancia académica y profesional, la necesidad formativa y el aporte a las competencias del perfil de egreso.
-3. Sumilla (description): naturaleza del curso, alcance, propósito formativo y ejes temáticos organizados; distingue claramente la sumilla de la fundamentación.
-4. Competencias, capacidades y logros del curso:
-   - competency: expresa la competencia general o principal del curso.
-   - competencies: tabla por carrera o ámbito del curso y competencia asociada.
-   - outcomes: desglosa las capacidades específicas.
-   - generalOutcome: redacta «Al finalizar el curso, el estudiante...» con verbo observable de alto nivel cognitivo (Taxonomía de Bloom), desempeño, objeto de estudio, contexto y condiciones de calidad esperada.
-5. Unidades de aprendizaje (units): organiza unidades pedagógicamente coherentes con título en mayúsculas, weeks (cada semana como cadena numérica individual, ej. ["1","2","3","4"]), outcomes medibles (con verbos Bloom) y topics suficientemente desarrollados y pertinentes. No repitas un logro genérico idéntico en todas las unidades.
-6. Metodología y recursos: describe el rol facilitador del docente, la participación activa del estudiante, estrategias formativas (ABP, estudio de casos, trabajo colaborativo), trabajo autónomo, recursos didácticos y tecnológicos y su conexión con los aprendizajes.
-7. Sistema de evaluación (evaluationPlan):
-   - Una sola fórmula de evaluación coherente y clara. Los pesos porcentuales de los ítems de evaluación DEBEN sumar exactamente 100%.
-   - Códigos únicos (ej. EC1, EP, ED1, EF, EA), descripción clara del producto o evidencia evaluable, semana de aplicación, peso porcentual y observación.
-   - Si el docente o el modelo institucional especifican un sistema o fórmula reglamentaria, respétalo y usa status=provided; de lo contrario diseña una propuesta técnica alineada a los logros y usa status=proposed.
-   - rules: contiene solo reglas institucionales explícitamente proporcionadas (asistencia mínima, escala vigesimal, etc.).
-   - evaluation: ofrece una explicación descriptiva y contextualizada del sistema de evaluación.
-8. Cronograma de actividades (schedule):
-   - Cubre con exhaustividad TODAS las semanas solicitadas (16 semanas para un semestre regular académico).
-   - Cada fila con unit (índice de unidad empezando en 1), week, session (número de sesión), topic específico y sustancial, activities formativas concretas con verbos medibles, y assessments (códigos de evaluación que correspondan exactamente a la semana en evaluationPlan, o arreglo vacío [] si no hay evaluación).
-   - Coherencia total: las semanas de cada unidad en units deben coincidir exactamente con las filas del cronograma.
-9. Fuentes de información (bibliographyDetails):
-   - Formato estricto APA 7ma edición, actualizada y pertinente a la especialidad del curso.
-   - Clasifica claramente en base (bibliografía obligatoria fundamental) y complementary (bibliografía complementaria y opcional).
-   - Solo incluye obras y autores reales comprobables. Si dudas de algún dato (año, editorial) o propones un texto que requiera verificación, marca [VERIFICAR].
-   - suggestions: temas o lecturas recomendadas adicionales. bibliography conserva el resumen textual.
+CONTENIDO DEL CURSO:
+1. generalData: institución, código, carreras, modalidad, horas semanales, theoryHours y practiceHours (suman las horas semanales), term (periodo académico), chronologicalPeriod, condition, nature (área de estudio) y prerrequisitos. Los datos de Parámetros y del sílabo base de la UNICA tienen prioridad; no inventes docente, DNI, correo, aulas ni horarios: si no se dieron, deja esos campos vacíos o sin filas.
+2. rationale: relevancia académica y profesional, necesidad formativa y aporte al perfil de egreso, con rigor académico.
+3. description (sumilla): naturaleza del curso (teórico/práctico), propósito y ejes temáticos; distinta de la fundamentación.
+4. competency, competencies, outcomes y generalOutcome («Al finalizar el curso, el estudiante…» con verbo observable de Bloom, objeto, contexto y calidad esperada).
+5. units: unidades coherentes, título en mayúsculas, weeks como cadenas numéricas individuales (["1","2","3","4"]), outcomes medibles y topics desarrollados (uno por semana).
+6. methodology: métodos, rol del docente y del estudiante, estrategias (ABP, casos, trabajo colaborativo), trabajo autónomo y recursos.
+7. evaluationPlan: una sola fórmula coherente; los pesos suman exactamente 100 %; cada ítem con código, descripción, semana, peso y observación.
+8. schedule: TODAS las semanas solicitadas; cada fila con unit (desde 1), week, session, topic, activities concretas con verbos medibles y assessments (códigos de evaluationPlan de esa semana o []). Las semanas de cada unidad coinciden con el cronograma.
+9. bibliographyDetails: APA 7, obras reales y pertinentes; base (obligatoria), complementary y suggestions. bibliography conserva el resumen textual.
 
-REGLAS INSTITUCIONALES SUNEDU Y DE CONTROL DE CALIDAD:
-- Corrige todas las incoherencias del sílabo base: una sola fórmula de evaluación, horas iguales en todo el documento (horas semanales = teoría + práctica), semanas coherentes con la duración declarada (sin semanas vacías, ni exámenes duplicados).
-- Contenido detallado por semana, con verbos medibles (Taxonomía de Bloom) y evidencias evaluables.
-- Bibliografía en APA 7, actualizada, con texto obligatorio y opcional. Solo obras reales; si dudas, marca [VERIFICAR].
-- Elimina cualquier texto ajeno a un sílabo formal (fuentes consultadas de IA, nombres de archivos, referencias a prompts o notas de chat).
-- No inventes datos personales o institucionales (docente, correo, aulas, horarios, fechas exactas, director, DNI): déjalos explícitamente como [COMPLETAR].
-- Auditoría y control de cambios:
-  * changesSummary: lista concisa de cambios y mejoras realizados respecto al sílabo base (corrección de horas, sincronización de fórmula, actualización de bibliografía).
-  * pendingFields: lista de campos pendientes que el docente debe completar marcados con [COMPLETAR].
-  * verificationNotes: lista de referencias o aspectos que requieren revisión marcados con [VERIFICAR], y cualquier diferencia de formato que no se pudo replicar.
-- Entrega: documento formal estructurado y completo, de máxima calidad institucional, listo para impresión en Word (.docx) y PDF.`;
+SÍLABO BASE DE LA UNICA: si se adjunta, úsalo como referencia del curso (datos institucionales, horario, docente, misión, fechas y nivel de detalle) y mejora su contenido; corrige incoherencias de horas, semanas y fórmulas. Si se pide un curso distinto al del sílabo base, ningún tema del curso original debe quedar.
+
+REGLAS:
+- NUNCA uses marcadores como [COMPLETAR], [VERIFICAR], [X] ni corchetes de relleno.
+- No incluyas notas de auditoría, cambios ni campos pendientes: el sílabo se entrega limpio como documento oficial.
+- Elimina cualquier texto ajeno a un sílabo formal (menciones a IA, archivos o prompts).`;
+
+const UNICA = 'UNIVERSIDAD NACIONAL "SAN LUIS GONZAGA"';
+const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'octubre', 'noviembre', 'diciembre'];
+/** «04 de noviembre del 2026», as written above the signatures of UNICA syllabi. */
+export function signatureDate(now = new Date()) {
+ const [year, month, day] = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now).split('-').map(Number);
+ return `${String(day).padStart(2, '0')} de ${MONTHS[month - 1]} del ${year}`;
+}
+const num = (value: unknown) => { const n = Number(String(value ?? '').match(/\d+(\.\d+)?/)?.[0]); return Number.isFinite(n) ? n : undefined; };
+
+/** Rows typed as "Sección | Teoría horario | Teoría lugar | Práctica horario | Práctica lugar". */
+export function parseTimetable(value: unknown) {
+ return String(value ?? '').split(/\r?\n/).map(line => line.split('|').map(cell => cell.trim())).filter(cells => cells.some(Boolean) && cells.length >= 2 && !/^secci[oó]n$/i.test(cells[0]))
+  .slice(0, 12).map(([section = '', theorySchedule = '', theoryRoom = '', practiceSchedule = '', practiceRoom = '']) => ({ section, theorySchedule, theoryRoom, practiceSchedule, practiceRoom }));
+}
+
+/** Teacher/base-document data always wins over what the model wrote; the cover is always UNICA. */
+export function applyUnicaData(data: any, p: Record<string, unknown>) {
+ const g = data.generalData = { ...(data.generalData || {}) };
+ const text = (key: string) => String(p[key] ?? '').trim();
+ for (const key of ['courseCode', 'modality', 'term', 'nature', 'prerequisites', 'chronologicalPeriod', 'condition', 'mission'] as const) if (text(key)) g[key] = text(key);
+ if (text('careers')) g.careers = text('careers').split(/\r?\n|;/).map(s => s.trim()).filter(Boolean);
+ for (const key of ['weeklyHours', 'theoryHours', 'practiceHours'] as const) { const n = num(p[key]); if (n !== undefined) g[key] = n; }
+ if (g.theoryHours !== undefined && g.practiceHours !== undefined && !num(p.weeklyHours)) g.weeklyHours = g.theoryHours + g.practiceHours;
+ const timetable = parseTimetable(p.timetable);
+ if (timetable.length) g.timetable = timetable;
+ if (text('cycle')) data.cycle = text('cycle');
+ const credits = num(p.credits); if (credits !== undefined) data.credits = credits;
+ // The signature date is the day the document is created (Lima time), not one typed or copied from the base PDF.
+ data.signatureDate = signatureDate();
+ const cover = data.coverPage = { ...(data.coverPage || {}) };
+ for (const key of ['institution', 'faculty', 'department'] as const) if (text(key)) cover[key] = text(key);
+ cover.institution = cover.institution || g.institution || UNICA;
+ g.institution = g.institution || cover.institution;
+ if (text('course')) { cover.course = text('course'); data.course = text('course'); }
+ // UNICA cover: «IV SEMESTRE» from the cycle and «2026 - II» from the academic period.
+ const cycle = String(data.cycle || '').trim(), term = String(g.term || '').trim();
+ if (cycle) cover.semester = /semestre|ciclo/i.test(cycle) ? cycle.toUpperCase() : `${cycle.toUpperCase()} SEMESTRE`;
+ if (term) cover.year = term.replace(/\s*-\s*/, ' - ');
+ cover.location = cover.location || 'ICA-PERÚ';
+ if (cover.semester && cover.year && cover.semester.replace(/\s/g, '') === cover.year.replace(/\s/g, '')) delete cover.semester;
+ delete data.renderedSections; delete data.design; delete data.baseSections;
+ return data;
+}

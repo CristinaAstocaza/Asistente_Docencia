@@ -1,0 +1,14 @@
+/* Visor PDF del documento final */
+.pdf-preview{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.pdf-preview-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pdf-preview-label{font-size:12.5px;font-weight:600;color:var(--color-text-secondary)}
+.pdf-preview-actions{display:flex;gap:6px;flex-wrap:wrap}
+.pdf-preview-switch{display:inline-flex;border:1px solid var(--color-border);border-radius:10px;overflow:hidden}
+.pdf-preview-switch button{border:0;background:#fff;padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);cursor:pointer}
+.pdf-preview-switch button+button{border-left:1px solid var(--color-border)}
+.pdf-preview-switch button.active{background:#EEF2FF;color:#3730A3}
+.pdf-preview-frame{width:100%;height:min(78vh,1000px);min-height:520px;border:1px solid var(--color-border);border-radius:12px;background:#525659;box-shadow:var(--shadow-md)}
+.pdf-preview-loading{display:flex;align-items:center;justify-content:center;gap:10px;min-height:320px;border:1px dashed var(--color-border-strong);border-radius:12px;color:var(--color-text-secondary);font-size:13.5px;background:var(--color-surface-secondary)}
+.pdf-spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid #C7D2FE;border-top-color:var(--color-primary);animation:spin-slow .8s linear infinite}
+.pdf-preview .error-box{align-items:center;justify-content:space-between}
+@keyframes spin-slow{to{transform:rotate(360deg)}}

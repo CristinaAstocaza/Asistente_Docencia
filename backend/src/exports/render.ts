@@ -1,5 +1,6 @@
 import { Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
 import PDFDocument from 'pdfkit';
+import { brandDocxHeader, stampPdfHeaders } from './brand';
 import { randomInt } from 'node:crypto';
 export type Line={text:string;heading?:boolean};
 const labels:Record<string,string>={title:'Título',objective:'Objetivo',introduction:'Inicio',motivation:'Motivación',development:'Desarrollo',examples:'Ejemplos',activity:'Actividad',closing:'Cierre',questions:'Preguntas',question:'Enunciado',options:'Alternativas',correctAnswer:'Respuesta correcta',explanation:'Explicación',difficulty:'Dificultad',topic:'Tema',source:'Fuente',criteria:'Criterios',levels:'Niveles',weight:'Peso (%)',name:'Nombre',score:'Puntuación',description:'Descripción',stages:'Etapas',minutes:'Minutos',activities:'Actividades',resources:'Recursos',assessment:'Evaluación',competency:'Competencia',outcome:'Logro',methodology:'Metodología',units:'Unidades',weeks:'Semanas',topics:'Temas',outcomes:'Resultados',bibliography:'Bibliografía',evaluation:'Evaluación',slides:'Diapositivas',content:'Contenido',notes:'Notas',visualSuggestion:'Sugerencia visual',style:'Estilo',duration:'Duración (min)',course:'Curso',credits:'Créditos',cycle:'Ciclo',area:'Área',instructions:'Instrucciones',sections:'Secciones',layout:'Distribución'};
@@ -25,15 +26,16 @@ export function examVersion(data:any,variant:string) {
  return copy;
 }
 export async function renderDocx(lines:Line[]) {
- return Packer.toBuffer(new Document({sections:[{children:lines.map(l=>new Paragraph({heading:l.heading?HeadingLevel.HEADING_2:undefined,children:[new TextRun({text:l.text,font:'Arial',size:22})],spacing:{after:160}}))}]}));
+ return Packer.toBuffer(new Document({sections:[{properties:{page:{margin:{top:1300,bottom:1000,left:1000,right:1000,header:500}}},headers:{default:brandDocxHeader()},children:lines.map(l=>new Paragraph({heading:l.heading?HeadingLevel.HEADING_2:undefined,children:[new TextRun({text:l.text,font:'Arial',size:22})],spacing:{after:160}}))}]}));
 }
 export { renderAcademicRubricDocx as renderRubricDocx } from './academic-render';
 export function renderPdf(lines:Line[]):Promise<Buffer> {
  return new Promise((resolve,reject)=>{
-  const doc=new PDFDocument({size:'A4',margin:50,bufferPages:true});const pieces:Buffer[]=[];
+  const doc=new PDFDocument({size:'A4',margins:{top:60,bottom:50,left:50,right:50},bufferPages:true});const pieces:Buffer[]=[];
   doc.on('data',d=>pieces.push(d));doc.on('end',()=>resolve(Buffer.concat(pieces)));doc.on('error',reject);
   for(const line of lines) {doc.font(line.heading?'Helvetica-Bold':'Helvetica').fontSize(line.heading?13:11).fillColor(line.heading?'#14213D':'#1F2937').text(line.text,{lineGap:3});doc.moveDown(0.4);}
-  const range=doc.bufferedPageRange();for(let i=range.start;i<range.start+range.count;i++){doc.switchToPage(i);doc.text(`${i+1} / ${range.count}`,50,doc.page.height-35,{lineBreak:false,align:'center'});}
+  stampPdfHeaders(doc);
+  const range=doc.bufferedPageRange();for(let i=range.start;i<range.start+range.count;i++){doc.switchToPage(i);doc.page.margins.bottom=0;doc.font('Helvetica').fontSize(8).fillColor('#64748B').text(`${i+1} / ${range.count}`,50,doc.page.height-35,{lineBreak:false,align:'center'});}
   doc.end();
  });
 }

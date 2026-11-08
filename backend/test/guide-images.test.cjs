@@ -12,7 +12,8 @@ test('image quota failure falls back to credited references and exports actual i
  const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');const task=pdfjs.getDocument({data:new Uint8Array(await renderPublishedGuidePdf(data,images)),useSystemFonts:true});const pdf=await task.promise;let imageCount=0;
  assert.equal(pdf.numPages,data.publication.pageCount);
  for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);assert.ok(Math.abs(page.view[2]-595.28)<1);assert.ok(Math.abs(page.view[3]-841.89)<1);const ops=await page.getOperatorList();imageCount+=ops.fnArray.filter(op=>op===pdfjs.OPS.paintImageXObject||op===pdfjs.OPS.paintInlineImageXObject).length;}
- assert.equal(imageCount,2);await task.destroy();
+ // Two content images plus the UNICA shield on every page (cover included).
+ assert.equal(imageCount,2+pdf.numPages);await task.destroy();
 });
 test('missing images produce an explicit error instead of a text-only guide',async()=>{
  await assert.rejects(()=>illustrateGuide(guide(),{userId:'teacher',topic:'Nursing',mode:'references',citations:[],reserve:async()=>{},visuals:{reference:async()=>null}}),/No se pudieron obtener imágenes/);

@@ -34,15 +34,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts",
-    ".next-studio/types/**/*.ts",
-    ".next-studio/dev/types/**/*.ts",
-    ".next-platform/types/**/*.ts",
-    ".next-platform/dev/types/**/*.ts",
-    ".next-platform-production/types/**/*.ts",
-    ".next-platform-production/dev/types/**/*.ts",
-    ".next-proxy/types/**/*.ts",
-    ".next-proxy/dev/types/**/*.ts"
+    "**/*.mts"
   ],
   "exclude": [
     "node_modules"

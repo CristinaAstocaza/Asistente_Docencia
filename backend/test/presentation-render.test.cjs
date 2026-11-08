@@ -13,14 +13,15 @@ function sample(){return {title:'Clase visual',style:'creativo',slides:[
 ]};}
 function picture(){const canvas=createCanvas(480,320);const ctx=canvas.getContext('2d');ctx.fillStyle='#157568';ctx.fillRect(0,0,480,320);return {data:canvas.toDataURL('image/png'),title:'Fotografía de prueba',author:'Autor de prueba',license:'CC BY 4.0',source:'https://commons.wikimedia.org/wiki/File:Example.png',width:480,height:320};}
 
-test('PDF and PPTX share landscape geometry, readable text, embedded images and credits',async()=>{
+test('PDF and PPTX share landscape geometry, readable text, embedded images and credits in the notes',async()=>{
  const scene=buildPresentationScene(sample(),[picture(),null,null],[{reference:1,name:'Lectura del docente.pdf',page:7}]);
- assert.equal(scene.slides.length,5);assert.equal(scene.imageCount,1);
+ // Only teaching slides: credits and sources go in the speaker notes, not in extra slides.
+ assert.equal(scene.slides.length,3);assert.equal(scene.imageCount,1);
  const ppt=await JSZip.loadAsync(await renderPresentationPptx(scene));
  assert.match(await ppt.file('ppt/presentation.xml').async('string'),/cx="12192000" cy="6858000"/);
  assert.ok(Object.keys(ppt.files).some(name=>name.startsWith('ppt/media/')));
- assert.match(await ppt.file('ppt/slides/slide4.xml').async('string'),/CC BY 4.0/);
- assert.match(await ppt.file('ppt/slides/slide5.xml').async('string'),/Lectura del docente.pdf/);
+ assert.ok(!ppt.file('ppt/slides/slide4.xml'));
+ assert.match(await ppt.file('ppt/notesSlides/notesSlide1.xml').async('string'),/CC BY 4.0/);
  assert.match(await ppt.file('ppt/notesSlides/notesSlide1.xml').async('string'),/Autor de prueba/);
  const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');
  const pdf=await pdfjs.getDocument({data:new Uint8Array(await renderPresentationPdf(scene)),isEvalSupported:false}).promise;
@@ -50,4 +51,13 @@ test('image search rejects unlicensed media and unsafe download hosts',async()=>
  const original=global.fetch;let calls=0;
  global.fetch=async()=>{calls++;return new Response(JSON.stringify({query:{pages:{1:{index:1,title:'File:Unsafe.jpg',imageinfo:[{thumburl:'http://127.0.0.1/private',mime:'image/jpeg',width:1000,height:700,extmetadata:{LicenseShortName:{value:'CC BY 4.0'}}}]},2:{index:2,title:'File:Restricted.jpg',imageinfo:[{url:'https://upload.wikimedia.org/image.jpg',mime:'image/jpeg',width:1000,height:700,extmetadata:{LicenseShortName:{value:'All rights reserved'}}}]}}}}));};
  try{assert.equal(await searchPresentationImage('educación'),null);assert.equal(calls,1);}finally{global.fetch=original;}
+});
+test('institutional style carries the UNICA shield, references and a closing slide',()=>{
+ const data=sample();data.style='institucional';data.references=['Elmasri, R., & Navathe, S. B. (2016). Sistemas de bases de datos. Pearson.'];
+ const scene=buildPresentationScene(data);
+ const shields=scene.slides.filter(s=>s.nodes.some(n=>n.type==='image'&&n.image.title==='Escudo UNICA'));
+ assert.ok(shields.length>=scene.slides.length-1);
+ const texts=scene.slides.map(s=>s.nodes.filter(n=>n.type==='text').flatMap(n=>n.lines).join(' '));
+ assert.ok(texts.some(t=>/Referencias bibliográficas/.test(t)&&/Elmasri/.test(t)));
+ assert.match(texts[texts.length-1],/SAN LUIS GONZAGA/);
 });

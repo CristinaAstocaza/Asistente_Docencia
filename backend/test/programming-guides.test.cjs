@@ -19,7 +19,7 @@ test('filename-only drafts are corrected with complete code, then exported with 
   assert.match(system,/TODO su contenido/);
   if(schema.properties.chapters)return {text:JSON.stringify({title:'Modelo de tareas',guideType:'Práctica',objectives:['Definir la tarea','Usar el modelo'],chapters:[{title:'Modelo de datos',brief:'Escribir interfaz Task'}]}),usage:{}};
   drafts++;if(drafts===2)assert.match(prompt,/solo una ruta/);
-  return {text:JSON.stringify({blocks:[{type:'paragraph',text:'Paso 1. Crea el archivo y pega este contenido. Comprueba que el editor reconoce la interfaz Task sin errores.'},{type:'code',filePath:'src/app/task.model.ts',language:'typescript',text:drafts===1?'src/app/task.model.ts':source}]}),usage:{}};
+  return {text:JSON.stringify({blocks:[{type:'paragraph',text:'Paso 1. Crea el archivo y pega este contenido. Comprueba que el editor reconoce la interfaz Task sin errores.'},{type:'code',filePath:'src/app/task.model.ts',language:'typescript',text:drafts===1?'src/app/task.model.ts':source},{type:'capture',capture:{kind:'terminal',title:'Compilación sin errores',command:'ng build',output:'Application bundle generation complete.'}}]}),usage:{}};
  }};
  const data=await generateGuidePublication({provider,system:'',prompt:'',topic:'Angular tareas',parameters:{guideType:'Práctica paso a paso',pages:2},teacher:{},citations:[],initialUsage:'test',reserve:async()=>'',record:async()=>{}});
  assert.equal(drafts,2);assert.equal(data.blocks[1].text,source);assert.equal(data.blocks[1].filePath,'src/app/task.model.ts');
@@ -46,7 +46,7 @@ test('Angular implementation retries vague instructions and accepts actual comma
   const items=['1. Abre la terminal en la carpeta del proyecto para crear un componente.','2. Edita el archivo del componente para preparar el formulario.','3. Abre el navegador y comprueba que funciona el formulario.'];
   if(drafts===1)return {text:JSON.stringify({blocks:[{type:'list',items}]}),usage:{}};
   assert.match(prompt,/Falta el ejemplo ejecutable/);
-  return {text:JSON.stringify({blocks:[{type:'list',items},{type:'code',language:'bash',text:'ng generate component mini-proyecto'},{type:'paragraph',text:'Archivo: src/app/mini-proyecto/mini-proyecto.ts'},{type:'code',language:'typescript',text:'export class MiniProyecto {\n  nombre = "";\n}'}]}),usage:{}};
+  return {text:JSON.stringify({blocks:[{type:'list',items},{type:'code',language:'bash',text:'ng generate component mini-proyecto'},{type:'paragraph',text:'Archivo: src/app/mini-proyecto/mini-proyecto.ts'},{type:'code',language:'typescript',text:'export class MiniProyecto {\n  nombre = "";\n}'},{type:'capture',capture:{kind:'web',title:'Mini proyecto',html:'<html><body><h1>Mini proyecto</h1><form><input></form></body></html>'}}]}),usage:{}};
  }};
  const result=await generateGuidePublication({provider,system:'',prompt:'',topic:'Angular con un mini proyecto',parameters:{guideType:'Práctica paso a paso',pages:2},teacher:{},citations:[],initialUsage:'test',reserve:async()=>'',record:async()=>{}});
  assert.equal(drafts,2);assert.equal(result.blocks.filter(b=>b.type==='code').length,2);

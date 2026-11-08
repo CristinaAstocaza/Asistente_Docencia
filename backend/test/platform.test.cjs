@@ -3,7 +3,7 @@ process.env.DATABASE_DRIVER='pglite';process.env.PGLITE_PATH='memory://';process
 const {test,before,after}=require('node:test');const assert=require('node:assert/strict');
 const {randomUUID}=require('node:crypto');const {readFile,mkdtemp,rm}=require('node:fs/promises');const {tmpdir}=require('node:os');const {join}=require('node:path');
 const {Document,Packer,Paragraph}=require('docx');const JSZip=require('jszip');
-const {createApp}=require('../dist/main');const {Database}=require('../dist/database/database');const {AIProvider}=require('../dist/ai/provider');const {hashToken}=require('../dist/auth/auth.module');const {KahootExportService}=require('../dist/exports/kahoot');const {guideContract}=require('../dist/ai/educational-contracts');
+const {createApp}=require('../dist/main');const {Database}=require('../dist/database/database');const {AIProvider}=require('../dist/ai/provider');const {hashToken}=require('../dist/auth/auth.module');const {KahootExportService}=require('../dist/exports/kahoot');const {guideContract}=require('../dist/ai/educational-contracts');const {createTeacher}=require('./accounts.cjs');
 let app,db,base,folder,owner,other,guide,plan,template,asset,lastPrompt,lastSystem;
 const block=()=>({id:randomUUID(),type:'paragraph',text:'Contenido educativo revisable.'});
 const guideData=()=>({title:'Guía de anatomía',guideType:'Estudio',objectives:['Identificar estructuras'],blocks:[{id:randomUUID(),type:'heading',text:'Fundamentos',level:1},block(),{id:randomUUID(),type:'table',text:'',rows:[['Instrumento','Uso'],['Estetoscopio','Auscultación educativa']]},{id:randomUUID(),type:'diagram',text:'',items:['Estudiar','Practicar','Reflexionar']},{id:randomUUID(),type:'code',text:'print("ejemplo")',language:'python'}]});
@@ -15,6 +15,8 @@ async function call(client,path,body,method='POST'){
 async function json(client,path,body,method='POST'){const r=await call(client,path,body,method);assert.ok(r.ok,`${path}: ${r.status} ${r.ok?'':await r.text()}`);return r.json();}
 before(async()=>{folder=await mkdtemp(join(tmpdir(),'docente-platform-'));process.env.STORAGE_PATH=folder;app=await createApp();db=app.get(Database);await db.executeSchema(await readFile('src/database/schema.sql','utf8'));
  for(const provider of app.get(AIProvider,{each:true})){provider.embed=async()=>[1,...Array(767).fill(0)];provider.generate=async(system,prompt,schema)=>{
+  // Image relevance checks are answered without replacing the prompt the tests inspect.
+  if(schema?.properties?.relevant)return {text:'{"relevant":true}',usage:{}};
   lastPrompt=prompt;lastSystem=system;let value;
   if(schema?.properties?.blocks||schema?.properties?.chapters||schema?.properties?.accentColor)value=require('./guide-fixture.cjs').fixture(schema,prompt);
   else if(schema?.properties?.weeks)value={title:'Plan de anatomía',course:'Anatomía',period:'2026-II',weeks:[week(),week()]};
@@ -24,7 +26,7 @@ before(async()=>{folder=await mkdtemp(join(tmpdir(),'docente-platform-'));proces
   else if(schema?.properties?.content)value={content:'Apartado pedagógico regenerado.'};
   else value='Respuesta contextual';return {text:typeof value==='string'?value:JSON.stringify(value),usage:{promptTokenCount:5,candidatesTokenCount:10}};
  };}
- await app.listen(0,'127.0.0.1');base=await app.getUrl()+'/api';owner={};other={};for(const [n,c] of [['owner',owner],['other',other]]){const u=await json(c,'/auth/register',{name:n,email:`${n}@platform.test`,password:'password123'});c.id=u.id;}
+ await app.listen(0,'127.0.0.1');base=await app.getUrl()+'/api';owner={};other={};for(const [n,c] of [['owner',owner],['other',other]]){const s=await createTeacher(base,{name:n,email:`${n}@platform.test`,password:'password123'});c.cookies=s.cookies;c.id=s.user.id;}
 },{timeout:120000});
 after(async()=>{await app?.close();if(folder)await rm(folder,{recursive:true,force:true});});
 test('academic context is optional, private and included in generation',async()=>{
@@ -71,7 +73,7 @@ test('session sections regenerate independently, and sessions export private ima
  const id=randomUUID();await db.query('INSERT INTO generated_content(id,user_id,kind,title,data,mode) VALUES($1,$2,$3,$4,$5,$6)',[id,owner.id,'session',data.title,JSON.stringify(data),'general']);
  const result=await json(owner,`/content/${id}/rewrite-section`,{section:'outcome',version:1});assert.match(result.content,/regenerado/);assert.equal((await json(owner,`/content/${id}`,undefined,'GET')).data.outcome,data.outcome);
  assert.equal((await call(other,`/content/${id}/rewrite-section`,{section:'outcome',version:1})).status,404);
- const response=await call(owner,`/content/${id}/export`,{format:'docx'});assert.equal(response.status,201);const zip=await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));const xml=await zip.file('word/document.xml').async('string');assert.match(xml,/I\. Datos informativos/);assert.match(xml,/VI\. Bibliografía/);assert.ok(Object.keys(zip.files).some(p=>p.startsWith('word/media/')&&!zip.files[p].dir));
+ const response=await call(owner,`/content/${id}/export`,{format:'docx'});assert.equal(response.status,201);const zip=await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));const xml=await zip.file('word/document.xml').async('string');assert.match(xml,/I\. DATOS INFORMATIVOS GENERALES/);assert.match(xml,/SECUENCIA DIDÁCTICA Y METODOLOGÍA/);assert.match(xml,/VI\. BIBLIOGRAFÍA/);assert.ok(Object.keys(zip.files).some(p=>p.startsWith('word/media/')&&!zip.files[p].dir));
 });
 test('Kahoot uses official XLSX headers, correct columns and validation without truncation',async()=>{
  const q={type:'multiple_choice',question:'¿Qué instrumento?',options:['Estetoscopio','Balanza'],correctAnswer:'Estetoscopio'};const bytes=await new KahootExportService().export([q]);const zip=await JSZip.loadAsync(bytes),xml=await zip.file('xl/worksheets/sheet1.xml').async('string');assert.match(xml,/<c r="B9"[^>]*>.*¿Qué instrumento/);assert.match(xml,/<c r="G9"><v>30/);assert.match(xml,/<c r="H9" t="inlineStr">.*<t[^>]*>1<\/t>/);assert.match(await zip.file('xl/sharedStrings.xml').async('string'),/120 max length/);
@@ -84,10 +86,8 @@ test('storage retains local originals when new uploads switch to Cloudinary',asy
   await storage.put(key,data,'text/plain');assert.equal((await db.query('SELECT driver FROM stored_files WHERE storage_key=$1',[key]))[0].driver,'cloudinary');assert.ok((await storage.get(key)).equals(data));await storage.delete(key);assert.equal((await db.query('SELECT * FROM stored_files WHERE storage_key=$1',[key])).length,0);
  }finally{process.env.STORAGE_DRIVER=before;}
 });
-test('password reset is one-time, revokes sessions and never exposes reset tokens',async()=>{
- const token='test-token-'.repeat(6);await db.query("INSERT INTO password_resets(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '30 minutes')",[hashToken(token),owner.id]);
- const result=await json(null,'/auth/reset-password',{token,password:'newpassword123'});assert.ok(!result.token);assert.equal((await call(owner,'/auth/me',undefined,'GET')).status,401);assert.equal((await call(null,'/auth/reset-password',{token,password:'password123'})).status,400);
- assert.equal((await call(null,'/auth/login',{email:'owner@platform.test',password:'password123'})).status,401);await json(owner,'/auth/login',{email:'owner@platform.test',password:'newpassword123'});
+test('there is no self-service password recovery: only the admin manages accounts',async()=>{
+ for(const path of ['/auth/forgot-password','/auth/reset-password'])assert.equal((await call(null,path,{email:'owner@platform.test',code:'123456',password:'newpassword123'})).status,404,path);
 });
 test('guide contracts reject broken tables, missing images and duplicate block ids',()=>{
  assert.equal(guideContract.safeParse({...guideData(),blocks:[{id:randomUUID(),type:'table',text:'',rows:[['a','b'],['c']]}]}).success,false);

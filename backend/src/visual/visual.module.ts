@@ -53,15 +53,17 @@ export class ImageGenerationProvider {
 export class VisualContentService {
  constructor(private readonly assets:AssetManager,private readonly images:ImageGenerationProvider){}
  assetBytes(userId:string,id:string){return this.assets.get(userId,id);}
- async generate(userId:string,prompt:string){const asset=await this.images.generate(prompt);return this.assets.save(userId,asset.bytes,asset.mime,'Ilustración generada por IA','generated');}
- async reference(userId:string,query:string){
-  const image=await searchPresentationImage(query);
+ async generate(userId:string,prompt:string,caption='Ilustración generada por IA'){const asset=await this.images.generate(prompt);return this.assets.save(userId,asset.bytes,asset.mime,caption,'generated');}
+ /** Keeps a picture as a private asset of the teacher (e.g. one extracted from a source). */
+ store(userId:string,bytes:Buffer,mime:string,caption:string,provenance:string){return this.assets.save(userId,bytes,mime,caption,provenance);}
+ async reference(userId:string,query:string,minScore=-Infinity,requireAll=false){
+  const image=await searchPresentationImage(query,undefined,minScore,requireAll);
   if(!image)return null;
   const match=image.data.match(/^data:(image\/(?:png|jpeg));base64,(.+)$/);
   if(!match)return null;
   const caption=`${image.title.slice(0,140)} · ${image.author.slice(0,160)} · ${image.license.slice(0,80)} · ${image.source}`;
   const asset=await this.assets.save(userId,Buffer.from(match[2],'base64'),match[1],caption,'reference');
-  return {...asset,source:image.source};
+  return {...asset,source:image.source,title:image.title,author:image.author,license:image.license};
  }
 }
 @Controller('visual-assets') @UseGuards(AuthGuard)

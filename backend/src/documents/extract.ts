@@ -22,6 +22,72 @@ async function officeZip(bytes:Buffer,kind:string) {
  if (!zip.file(kind === 'DOCX' ? 'word/document.xml' : 'ppt/presentation.xml')) throw new BadRequestException('Documento Office inválido.');
  return zip;
 }
+
+function formatPdfPage(items: any[]): string {
+ const textItems = items.filter(x => typeof x?.str === 'string' && x.str.trim().length > 0);
+ if (!textItems.length) return '';
+
+ textItems.sort((a, b) => {
+  const aY = a.transform?.[5] ?? 0;
+  const bY = b.transform?.[5] ?? 0;
+  if (Math.abs(bY - aY) > 3.5) {
+   return bY - aY;
+  }
+  const aX = a.transform?.[4] ?? 0;
+  const bX = b.transform?.[4] ?? 0;
+  return aX - bX;
+ });
+
+ const lines: { y: number; items: any[] }[] = [];
+ for (const item of textItems) {
+  const y = item.transform?.[5] ?? 0;
+  const lastLine = lines[lines.length - 1];
+  if (lastLine && Math.abs(lastLine.y - y) <= 3.5) {
+   lastLine.items.push(item);
+  } else {
+   lines.push({ y, items: [item] });
+  }
+ }
+
+ const formattedLines: string[] = [];
+ let prevY: number | null = null;
+
+ for (const line of lines) {
+  if (prevY !== null) {
+   const yDiff = prevY - line.y;
+   if (yDiff > 20) {
+    formattedLines.push('');
+   }
+  }
+  prevY = line.y;
+
+  let lineStr = '';
+  let prevItemEnd = 0;
+  for (let idx = 0; idx < line.items.length; idx++) {
+   const it = line.items[idx];
+   const itX = it.transform?.[4] ?? 0;
+   const itW = it.width || (it.str.length * 6);
+
+   if (idx > 0) {
+    const gap = itX - prevItemEnd;
+    if (gap > 28) {
+     lineStr += ' | ' + it.str.trim();
+    } else if (gap > 4) {
+     lineStr += ' ' + it.str.trim();
+    } else {
+     lineStr += (lineStr.endsWith(' ') ? '' : ' ') + it.str.trim();
+    }
+   } else {
+    lineStr += it.str.trim();
+   }
+   prevItemEnd = itX + itW;
+  }
+  formattedLines.push(lineStr.trim());
+ }
+
+ return formattedLines.join('\n');
+}
+
 export async function extract(bytes:Buffer,type:string,provider:AIProvider):Promise<Page[]> {
  if (type==='TXT') return [{text:new TextDecoder('utf-8',{fatal:true}).decode(bytes),page:null}];
  if (type==='DOCX') { await officeZip(bytes,type); return [{text:(await mammoth.extractRawText({buffer:bytes})).value,page:null}]; }
@@ -36,7 +102,12 @@ export async function extract(bytes:Buffer,type:string,provider:AIProvider):Prom
   const pdf=await task.promise; const pages:Page[]=[];
   try {
    if(pdf.numPages>500) throw new BadRequestException('El PDF supera las 500 páginas.');
-   for(let i=1;i<=pdf.numPages;i++) { const page=await pdf.getPage(i); const content=await page.getTextContent(); pages.push({page:i,text:content.items.map((x:any)=>x.str || '').join(' ')}); }
+   for(let i=1;i<=pdf.numPages;i++) {
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    const pageText = formatPdfPage(content.items);
+    pages.push({page:i,text:pageText});
+   }
    return pages;
   } finally { await task.destroy(); }
  }

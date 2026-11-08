@@ -24,15 +24,18 @@ export class AIProvider {
   if (!key) throw new ServiceUnavailableException('Configura GEMINI_API_KEY en el servidor para utilizar IA.');
   try {
    let response:Response|undefined;
-   for(let attempt=0;attempt<3;attempt++) {
+   // Gemini saturation comes in bursts: retry with growing waits (2, 4, 8, 16, 30 s) and honor Retry-After.
+   const attempts=Math.max(1,Number(process.env.AI_RETRY_ATTEMPTS)||6);
+   for(let attempt=0;attempt<attempts;attempt++) {
    if(method==='generateContent')await providerPacing.acquire(model,Math.max(1,Number(process.env.AI_TEXT_REQUESTS_PER_MINUTE)||12));
    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:${method}`, {
     method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body),signal:AbortSignal.timeout(120000),
    });
-   if(response.ok || ![429,502,503,504].includes(response.status) || attempt===2)break;
-   await response.arrayBuffer();await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));
+   if(response.ok || ![429,500,502,503,504].includes(response.status) || attempt===attempts-1)break;
+   const retryAfter=Number(response.headers.get('retry-after'))*1000;
+   await response.arrayBuffer();await new Promise(resolve=>setTimeout(resolve,retryAfter>0?Math.min(retryAfter,60000):Math.min(30000,2000*2**attempt)+Math.random()*500));
    }
-   if (!response!.ok) throw new HttpException(response!.status === 429 ? 'El proveedor de IA alcanzó su límite. Intenta más tarde.' : response!.status===503 ? 'El proveedor de IA está temporalmente saturado. Intenta nuevamente.' : response!.status===404 ? 'El modelo de IA configurado no está disponible. Actualiza GEMINI_MODEL en el servidor.' : 'El proveedor de IA no pudo completar la solicitud. Comprueba el modelo y la configuración.',response!.status === 429 ? 429 : 502);
+   if (!response!.ok) throw Object.assign(new HttpException(response!.status === 429 ? 'El proveedor de IA alcanzó su límite. Intenta más tarde.' : response!.status===503 ? 'El proveedor de IA está temporalmente saturado. Intenta nuevamente.' : response!.status===404 ? 'El modelo de IA configurado no está disponible. Actualiza GEMINI_MODEL en el servidor.' : 'El proveedor de IA no pudo completar la solicitud. Comprueba el modelo y la configuración.',response!.status === 429 ? 429 : 502),{upstreamStatus:response!.status});
    return await response!.json();
   } catch(error) { if (error instanceof HttpException) throw error; throw new ServiceUnavailableException('No se pudo conectar con el proveedor de IA.'); }
  }
@@ -46,10 +49,17 @@ export class AIProvider {
   return vector;
  }
  async generate(system: string, prompt: string, schema?: object, image?: InlineAsset|InlineAsset[]) {
-  const response = await this.request(settings.model,'generateContent',{
+  const body={
    systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:prompt},...(image?(Array.isArray(image)?image:[image]).map(asset=>({inlineData:{mimeType:asset.mime,data:asset.data}})):[])]}],
-   generationConfig:{...(schema?{responseFormat:{text:{mimeType:'APPLICATION_JSON',schema:providerSchema(schema)}}}:{}),maxOutputTokens:16000},
-  });
+   generationConfig:{...(schema?{responseFormat:{text:{mimeType:'APPLICATION_JSON',schema:providerSchema(schema)}}}:{}),maxOutputTokens:32000},
+  };
+  // A saturated or exhausted model hands the same request to the next one instead of losing the whole material.
+  const models=[...new Set([settings.model,...settings.fallbackModels])];
+  let response:any;
+  for(const [i,model] of models.entries()){
+   try{response=await this.request(model,'generateContent',body);break;}
+   catch(error){if(i===models.length-1||![429,500,502,503,504].includes(Number((error as any)?.upstreamStatus)))throw error;}
+  }
   const text = response.candidates?.[0]?.content?.parts?.filter((part:any)=>part.text && !part.thought).map((part:any)=>part.text).join('');
   if (!text || response.candidates?.[0]?.finishReason !== 'STOP') throw new ServiceUnavailableException('La IA devolvió un resultado vacío o incompleto. Reduce la cantidad de contenido solicitado.');
   return {text,usage:response.usageMetadata || {}};

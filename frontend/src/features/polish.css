@@ -1,0 +1,77 @@
+/* Capa visual común: coherencia, jerarquía y estados de interacción en todas las secciones. */
+
+/* Encabezado de página: la misma tarjeta para Fuentes, Chat, Guías e Historial que en los estudios. */
+.page-heading{padding:22px 26px;border-radius:var(--radius-xl);background:linear-gradient(135deg,#F5F7FF 0%,#FFFFFF 70%);border:1px solid #E3E8FB;border-left:5px solid var(--color-primary);box-shadow:var(--shadow-sm);align-items:center}
+.page-heading .eyebrow{display:inline-flex;align-items:center;gap:6px}
+.page-heading h1{margin:4px 0 2px}
+.workspace .page-heading p{margin:0;color:var(--color-text-secondary)}
+.studio-heading{box-shadow:var(--shadow-sm)}
+
+/* Botones: estados claros de hover, foco y pulsación. */
+.btn{transition:background-color .15s,border-color .15s,color .15s,box-shadow .15s,transform .05s;text-decoration:none;line-height:1.2}
+.btn:hover:not(:disabled){border-color:var(--color-primary);color:var(--color-primary);background:#F8F9FF}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:focus-visible,.dash-stat:focus-visible,.dash-action:focus-visible,a:focus-visible,select:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(67,97,238,.35)}
+.btn.primary:hover:not(:disabled){color:#fff;background:linear-gradient(135deg,#3A55E0,#5F55F5);box-shadow:0 6px 16px rgba(67,97,238,.3)}
+.btn.danger:hover:not(:disabled){color:#fff;background:#DC2626;border-color:#DC2626}
+.btn.primary-soft{background:#EEF2FF;border-color:#E0E7FF;color:#3730A3}
+.btn.primary-soft:hover:not(:disabled){background:#E0E7FF;color:#312E81}
+.btn.format{padding:7px 10px;font-size:11.5px;color:var(--color-text-secondary)}
+.btn.icon{color:var(--color-text-secondary)}
+.btn.danger-ghost:hover:not(:disabled){color:#DC2626;border-color:#FCA5A5;background:#FEF2F2}
+.btn.ghost-light:hover:not(:disabled){color:#fff}
+
+/* Campos de formulario: foco visible y consistente. */
+.field input,.field textarea,.field select{transition:border-color .15s,box-shadow .15s}
+.field input:hover,.field textarea:hover,.field select:hover{border-color:var(--color-border-strong)}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--color-primary);box-shadow:var(--shadow-glow)}
+.field input::placeholder,.field textarea::placeholder{color:var(--color-text-muted)}
+.header-search input:focus{outline:none;border-color:var(--color-primary);box-shadow:var(--shadow-glow);background:var(--color-surface)}
+
+/* Tablas: cabecera discreta, filas legibles y acciones agrupadas. */
+.data-table th{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--color-text-secondary);padding:12px 14px}
+.data-table td{font-size:13px;vertical-align:middle}
+.data-table tbody tr{transition:background-color .12s}
+.data-table tbody tr:hover{background:#FAFBFF}
+.row-title{font-weight:600;color:var(--color-text)}
+.row-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+
+/* Tipo de material: color por sección, igual que el menú y el Dashboard. */
+.kind-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;background:#EEF2FF;color:#4338CA}
+.kind-lesson{background:#F5F3FF;color:#6D28D9}.kind-session{background:#EEF2FF;color:#4338CA}.kind-guide{background:#F0FDFA;color:#0F766E}
+.kind-syllabus{background:#FFFBEB;color:#B45309}.kind-presentation{background:#FFF7ED;color:#C2410C}.kind-exam,.kind-questions{background:#FFF1F2;color:#BE123C}
+.kind-rubric{background:#F0FDF4;color:#15803D}.kind-activity{background:#ECFEFF;color:#0E7490}.kind-planning,.kind-summary{background:#F1F5F9;color:#475569}
+
+/* Tarjetas y estados vacíos. */
+.card{border-radius:var(--radius-lg)}
+.empty-state h2{color:var(--color-text);margin-top:4px}
+.empty-state svg{display:block}
+.badge{font-weight:600}
+.error-box{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}
+
+/* Barra superior: acceso directo al perfil con avatar y rol. */
+.header-profile{display:inline-flex;align-items:center;gap:10px;padding:5px 12px 5px 5px;border-radius:999px;border:1px solid var(--color-border);background:var(--color-surface);transition:border-color .15s,box-shadow .15s}
+.header-profile:hover{border-color:var(--color-primary);box-shadow:var(--shadow-sm)}
+.header-avatar{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,#4361EE,#6C63FF)}
+.header-avatar.admin{background:linear-gradient(135deg,#C8102E,#0B2A5B)}
+.header-profile-text{display:flex;flex-direction:column;line-height:1.15}
+.header-profile-text strong{font-size:13px;color:var(--color-text)}
+.header-profile-text small{font-size:11px;color:var(--color-text-secondary);font-weight:500}
+.app-header{position:sticky;top:0;z-index:30;backdrop-filter:saturate(1.2) blur(6px);background:rgba(255,255,255,.92)}
+
+/* Desplazamiento suave y barras de scroll discretas. */
+.app-sidebar nav::-webkit-scrollbar,.modal::-webkit-scrollbar{width:8px}
+.app-sidebar nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:8px}
+.modal::-webkit-scrollbar-thumb{background:var(--color-border-strong);border-radius:8px}
+.modal{box-shadow:var(--shadow-lg)}
+.modal-backdrop{backdrop-filter:blur(2px)}
+
+@media(max-width:850px){.page-heading{padding:18px}.header-profile{display:none}}
+
+/* Resultado: solo el documento final en PDF */
+.result-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.workspace .result-head h2{margin:0;font-size:18px}
+.history-preview{width:min(1100px,100%)}
+.history-preview .source-modal-header h2{margin:6px 0 0;font-size:18px}
+.history-preview .source-modal-header .toolbar{margin:0;flex-wrap:nowrap}
+.chat-artifact .pdf-preview-frame{height:70vh;min-height:420px}

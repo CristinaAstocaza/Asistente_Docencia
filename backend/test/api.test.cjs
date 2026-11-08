@@ -8,6 +8,7 @@ const {createApp}=require('../dist/main');
 const {Database}=require('../dist/database/database');
 const {AIProvider}=require('../dist/ai/provider');
 const {DocumentWorker}=require('../dist/documents/documents.module');
+const {createTeacher,ADMIN}=require('./accounts.cjs');
 let app,base,db,storage;
 const lesson={title:'Clase de sumas',objective:'Resolver sumas',introduction:'Agrupar objetos',motivation:'Contar pares',development:['Suma de pares'],examples:['2+2=4'],activity:'Contar objetos',closing:'Verificar resultados',questions:['¿Cómo sumaste?']};
 const q={type:'multiple_choice',question:'¿Cuánto es 2 + 2?',options:['3','4'],correctAnswer:'4',explanation:'Son dos pares.',difficulty:'easy',topic:'Sumas',source:'Apuntes'};
@@ -29,11 +30,20 @@ before(async()=>{
  await app.listen(0,'127.0.0.1');base=await app.getUrl()+'/api';
 }, {timeout:120000});
 after(async()=>{if(app)await app.close();if(storage)await rm(storage,{recursive:true,force:true});});
+test('the seeded admin moves from its previous email without duplicating the account',async()=>{
+ const {ensureAdmin,ADMIN_EMAIL}=require('../dist/auth/admin-seed');
+ const [seeded]=await db.query('SELECT id FROM users WHERE email=$1',[ADMIN_EMAIL]);
+ await db.query("UPDATE users SET email='docentelino2026@docentia.edu.pe' WHERE id=$1",[seeded.id]);
+ assert.equal(await ensureAdmin(db),'moved');assert.equal(await ensureAdmin(db),'kept');
+ await db.query("UPDATE users SET email='marcusdoriano@wrcoasociados.com' WHERE id=$1",[seeded.id]);assert.equal(await ensureAdmin(db),'moved');
+ const admins=await db.query('SELECT id,email FROM users WHERE is_admin');assert.deepEqual(admins,[{id:seeded.id,email:ADMIN_EMAIL}]);
+});
 test('authentication rejects anonymous API requests and persists accounts',async()=>{
  assert.equal((await call(clients.a,'/documents',undefined,'GET')).status,401);
- for(const [name,client] of Object.entries(clients)){const r=await call(client,'/auth/register',{name,email:`${name}@example.test`,password:'password123',institution:'Instituto'});assert.equal(r.status,201);assert.ok(client.cookies.includes('docente_access='));}
- assert.equal((await call(clients.a,'/auth/register',{name:'Otro',email:'a@example.test',password:'password123'})).status,409);
+ assert.equal((await call({cookies:''},'/auth/register',{name:'Público',email:'p@example.test',password:'password123'})).status,404);
+ for(const [name,client] of Object.entries(clients)){const s=await createTeacher(base,{name,email:`${name}@example.test`,password:'password123',institution:'Instituto'});client.cookies=s.cookies;assert.ok(client.cookies.includes('docente_access='));}
  assert.equal((await call({cookies:''},'/auth/login',{email:'a@example.test',password:'wrong-pass'})).status,401);
+ const admin=await call({cookies:''},'/auth/login',{email:'MarcusDoriano23@gmail.com',password:ADMIN.password});assert.equal(admin.status,201);assert.equal((await admin.json()).is_admin,true);
 });
 test('origin validation rejects cross-origin authenticated writes',async()=>{
  const r=await fetch(base+'/profile',{method:'PATCH',headers:{Cookie:clients.a.cookies,Origin:'https://evil.example','Content-Type':'application/json'},body:JSON.stringify({name:'Atacante',institution:''})});assert.equal(r.status,403);
@@ -72,7 +82,7 @@ test('editing versions content, rejects stale writes and duplication creates an 
 test('bank reuse creates an exam and download endpoints emit real files',async()=>{
  const bank=await (await call(clients.a,'/generate',{kind:'questions',topic:'Sumas',parameters:{count:1}})).json();bankId=bank.id;
  const exam=await (await call(clients.a,'/exams/from-bank',{bankId,title:'Práctica',count:1,duration:30})).json();assert.equal(exam.kind,'exam');
- for(const format of ['docx','pdf']){const r=await call(clients.a,`/content/${exam.id}/export`,{format,variant:'B'});assert.equal(r.status,201);const bytes=Buffer.from(await r.arrayBuffer());assert.equal(bytes.subarray(0,format==='pdf'?5:2).toString(),format==='pdf'?'%PDF-':'PK');if(format==='pdf'){const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');const pdf=await pdfjs.getDocument({data:new Uint8Array(bytes),isEvalSupported:false}).promise;const text=(await (await pdf.getPage(1)).getTextContent()).items.map(item=>item.str).join(' ');assert.match(text,/Estudiante:/);assert.match(text,/A\)/);assert.doesNotMatch(text,/multiple_choice|difficulty|Son dos pares/);await pdf.cleanup();}}
+ for(const format of ['docx','pdf']){const r=await call(clients.a,`/content/${exam.id}/export`,{format,variant:'B'});assert.equal(r.status,201);const bytes=Buffer.from(await r.arrayBuffer());assert.equal(bytes.subarray(0,format==='pdf'?5:2).toString(),format==='pdf'?'%PDF-':'PK');if(format==='pdf'){const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');const pdf=await pdfjs.getDocument({data:new Uint8Array(bytes),isEvalSupported:false}).promise;const text=(await (await pdf.getPage(1)).getTextContent()).items.map(item=>item.str).join(' ');assert.match(text,/EVALUACIÓN ESCRITA/);assert.match(text,/SAN LUIS GONZAGA/);assert.match(text,/A\)/);assert.doesNotMatch(text,/multiple_choice|difficulty|Son dos pares/);await pdf.cleanup();}}
  const quiz=await call(clients.a,'/integrations/quizizz/export',{contentId:bankId});assert.equal(quiz.status,201);assert.equal(Buffer.from(await quiz.arrayBuffer()).subarray(0,2).toString(),'PK');
  assert.equal((await call(clients.b,`/content/${materialId}/export`,{format:'pdf'})).status,404);
 });
@@ -170,4 +180,31 @@ test('refresh rotates tokens, revoked tokens cannot be reused, logout invalidate
  const old=clients.a.cookies;assert.equal((await call(clients.a,'/auth/refresh',{})).status,201);assert.notEqual(old,clients.a.cookies);
  assert.equal((await call({cookies:old},'/auth/refresh',{})).status,401);
  await call(clients.a,'/auth/logout',{});assert.equal((await call(clients.a,'/auth/me',undefined,'GET')).status,401);
+});
+test('users change their own password; other sessions close; admin list and delete are safe',async()=>{
+ const email='cambio@example.test',first={cookies:(await createTeacher(base,{name:'Cambio',email,password:'password123'})).cookies},second={cookies:''};
+ assert.equal((await call(second,'/auth/login',{email,password:'password123'})).status,201);
+ assert.equal((await call(first,'/auth/change-password',{currentPassword:'wrong-pass',newPassword:'nuevaClave123'})).status,400);
+ assert.equal((await call(first,'/auth/change-password',{currentPassword:'password123',newPassword:'corta'})).status,400);
+ assert.equal((await call(first,'/auth/change-password',{currentPassword:'password123',newPassword:'nuevaClave123'})).status,201);
+ assert.equal((await call(first,'/auth/me',undefined,'GET')).status,200,'current session stays open');
+ assert.equal((await call(second,'/auth/me',undefined,'GET')).status,401,'other sessions are closed');
+ assert.equal((await call({cookies:''},'/auth/login',{email,password:'password123'})).status,401);
+ assert.equal((await call({cookies:''},'/auth/login',{email,password:'nuevaClave123'})).status,201);
+ const admin={cookies:''};await call(admin,'/auth/login',{email:'DocenteLino2026',password:ADMIN.password});
+ const users=await (await call(admin,'/auth/users',undefined,'GET')).json();assert.ok(users[0].is_admin);const row=users.find(u=>u.email===email);
+ assert.equal(typeof row.materials,'number');assert.equal(typeof row.sources,'number');assert.ok(row.last_login);
+ assert.equal((await call(admin,'/auth/users/no-es-un-id',undefined,'DELETE')).status,404);
+ const secondAdmin=await (await call(admin,'/auth/users',{name:'Admin Dos',email:'admin2@example.test',password:'clave-admin-2',is_admin:true})).json();assert.equal(secondAdmin.is_admin,true);
+ const asSecond={cookies:''};await call(asSecond,'/auth/login',{email:'admin2@example.test',password:'clave-admin-2'});assert.equal((await call(asSecond,'/auth/users',undefined,'GET')).status,200,'the new admin manages accounts');
+ assert.equal((await call(asSecond,'/auth/users/'+secondAdmin.id,undefined,'DELETE')).status,403);
+ await db.query('UPDATE users SET is_admin=true WHERE id=$1',[row.id]);assert.equal((await call(admin,'/auth/users/'+row.id,undefined,'DELETE')).status,403,'admins cannot be deleted');
+ await db.query('UPDATE users SET is_admin=false WHERE id=$1',[row.id]);assert.equal((await call(admin,'/auth/users/'+row.id,undefined,'DELETE')).status,200);
+});
+test('the admin account is never created with a password written in the code',async()=>{
+ const {ensureAdmin}=require('../dist/auth/admin-seed');const inserts=[];
+ const fake={query:async(sql,params)=>{if(sql.startsWith('INSERT'))inserts.push(params);return [];}};
+ const saved=process.env.ADMIN_PASSWORD;delete process.env.ADMIN_PASSWORD;
+ try{assert.equal(await ensureAdmin(fake),'skipped');assert.equal(inserts.length,0);}finally{process.env.ADMIN_PASSWORD=saved;}
+ assert.equal(await ensureAdmin(fake),'created');assert.equal(inserts.length,1);assert.notEqual(inserts[0][2],saved,'only the hash is stored');
 });
